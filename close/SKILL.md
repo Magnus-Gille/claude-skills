@@ -126,7 +126,16 @@ Claude Code is the bridge between local files and Munin. Desktop, Web, and Mobil
    - **Blockers:** Anything preventing progress (or "None")
 3. Update the project's auto memory file (MEMORY.md) if it exists
 
-### 8. Session Summary
+### 8. Skills Repo Sync
+
+If skills were created or modified this session, remind the user to push:
+```
+Skills were modified this session. Push to sync with Pi:
+  cd ~/.claude/skills && git add -A && git commit -m "update <skill-name>" && git push
+```
+Repo: https://github.com/Magnus-Gille/claude-skills (private)
+
+### 9. Session Summary
 
 Provide brief summary to the user:
 ```
