@@ -47,7 +47,7 @@ Check the diff size. If over 5000 lines, warn the user that the review may be ex
 ### Step 3: Invoke Codex
 
 ```bash
-codex exec --full-auto "You are a senior code reviewer performing a thorough review of a pull request.
+script -q /dev/null codex exec --full-auto "You are a senior code reviewer performing a thorough review of a pull request.
 
 Read the diff at /tmp/codex-pr-review-diff.txt and the commit log at /tmp/codex-pr-review-commits.txt.
 Also read any source files referenced in the diff to understand the full context.
