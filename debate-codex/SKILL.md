@@ -20,10 +20,11 @@ Before the first debate in a project, check if `debate/` is gitignored. If not, 
 
 **Correct syntax:**
 ```bash
-codex exec --full-auto "<prompt>" 2>&1
+script -q /dev/null codex exec --full-auto "<prompt>" 2>&1
 ```
 
 **Important rules:**
+- Wrap with `script -q /dev/null` to provide a pseudo-TTY (Codex auth fails without one when invoked from Claude Code)
 - Use `codex exec --full-auto` — NOT `codex -q` or other flags
 - Do NOT use the `-o` flag to capture critique content. The `-o` flag writes Codex's final conversational summary, not the file it created. Instead, instruct Codex to write its output file directly (it has workspace-write access via `--full-auto`).
 - Set `--timeout 300000` on the Bash tool call (Codex can take a few minutes)
@@ -53,7 +54,7 @@ Before invoking Codex, Claude critiques its own draft. Write to `debate/<topic>-
 ### Step 3: Invoke Codex (Round 1 critique)
 
 ```bash
-codex exec --full-auto "You are acting as a grounded but adversarial reviewer.
+script -q /dev/null codex exec --full-auto "You are acting as a grounded but adversarial reviewer.
 
 Read the file debate/<topic>-claude-draft.md. [Additional context files to read if needed.]
 
