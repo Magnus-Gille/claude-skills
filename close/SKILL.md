@@ -28,7 +28,8 @@ git commit -m "snapshot $(date +%Y-%m-%d)"
 - Multiple snapshots per day get the same date — that's fine
 
 #### All other repos
-- If uncommitted changes exist → **run the `/commit` workflow** (author verify, security check, conventional message, push offer). Do not duplicate commit logic here.
+- If uncommitted changes exist → **run the `/commit` workflow** (author verify, security check, conventional message). Do not duplicate commit logic here.
+- After committing, **push automatically** (`git push`). If no upstream is set, use `git push -u origin <branch>`.
 - If feature branches exist, ask user: merge now or leave for later?
 - If clean, move on.
 
@@ -66,11 +67,11 @@ stat -f "%Sm" ~/.claude/usage-data/report.html 2>/dev/null
 - If the report doesn't exist or is older than 30 days, suggest running `/insights` followed by `/apply-insights`.
 - If recent, skip silently.
 
-**Inbox & tasks:**
+**Capture & tasks:**
 ```bash
-ls inbox/ 2>/dev/null
+ls capture/ 2>/dev/null
 ```
-- Any unprocessed inbox items? → Run `/inbox` or note for next session
+- Any unprocessed capture items? → Run `/capture` or note for next session
 - Any new tasks from this session? → Add to Munin via `memory_write("tasks", "<category>", ...)`. Tasks live in Munin `tasks/` namespace (commitments, projects, admin, events) — NOT in local TASKS.md files.
 - Session learnings worth capturing? → Add to `learning/`
 
@@ -128,10 +129,9 @@ Claude Code is the bridge between local files and Munin. Desktop, Web, and Mobil
 
 ### 8. Skills Repo Sync
 
-If skills were created or modified this session, remind the user to push:
-```
-Skills were modified this session. Push to sync with Pi:
-  cd ~/.claude/skills && git add -A && git commit -m "update <skill-name>" && git push
+If skills were created or modified this session, commit and push automatically:
+```bash
+cd ~/.claude/skills && git add -A && git commit -m "update <skill-name>" && git push
 ```
 Repo: https://github.com/Magnus-Gille/claude-skills (private)
 
