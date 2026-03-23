@@ -1,6 +1,6 @@
 ---
 name: submit-task
-description: Submit a task to Hugin (the Pi task dispatcher) by writing a properly formatted entry to Munin. Use when the user wants to dispatch work to the Pi — code implementation, Codex reviews, maintenance scripts, or any autonomous task.
+description: Submit a task to Hugin (the Pi task dispatcher) by writing a properly formatted entry to Munin. Use when the user wants to dispatch work to the Pi — code implementation, Codex reviews, research, email drafting, maintenance scripts, or any autonomous task.
 ---
 
 # /submit-task - Submit a Task to Hugin
@@ -19,13 +19,45 @@ Submit a task to the Hugin dispatcher running on the Pi (huginmunin). Hugin poll
 
 If no description provided, ask the user:
 - What should the task do?
-- Which repo/directory on the Pi? (default: `/home/magnus/workspace`)
+- Which context? (repo name, scratch, files, or custom path)
 - How long might it take? (for timeout)
 - Any specific constraints?
 
 If a description was provided, infer these from context. Check Munin (`projects/*/status`) for relevant project state if needed.
 
-### Step 2: Choose Runtime and Timeout
+### Step 2: Infer Context
+
+Determine the execution context from the task description:
+
+| Signal in description | Context | Resolved path on Pi |
+|----------------------|---------|-------------------|
+| Mentions a specific repo name | `repo:<name>` | `/home/magnus/repos/<name>` |
+| Research, analysis, investigation | `scratch` | `/home/magnus/scratch` |
+| Email drafting, admin tasks | `scratch` | `/home/magnus/scratch` |
+| File organization, document work | `files` | `/home/magnus/mimir` |
+| Explicit path given | Raw path | Used as-is |
+| Ambiguous | Ask the user | — |
+
+Default: `scratch` for non-code tasks, `repo:<name>` for code tasks.
+
+### Step 3: Detect Multi-Task Decomposition
+
+If the task involves **multiple repos** or **clearly sequential phases with different scopes**, decompose into a task group:
+
+1. Generate a group ID: `YYYYMMDD-HHMMSS-<slug>` (same timestamp for all sub-tasks)
+2. Each sub-task gets its own task ID, `**Group:**` field, and `**Sequence:**` number
+3. Each sub-task prompt (except the first) includes at the top:
+   ```
+   **PREREQUISITE CHECK:** Before starting, read `tasks/<prev-task-id>/result`.
+   If it does not contain "DONE", write to your own result:
+   "SKIPPED — prerequisite <prev-task-id> did not complete successfully" and exit.
+   ```
+4. Show the full decomposition to the user before submitting
+5. Submit all sub-tasks at once (they queue in FIFO order)
+
+**When NOT to decompose:** If the task can be done in a single repo or a single session even if it has multiple phases, keep it as one task. Decomposition is for cross-repo or truly independent work items.
+
+### Step 4: Choose Runtime and Timeout
 
 | Runtime | When to use | Munin tag |
 |---------|-------------|-----------|
@@ -39,13 +71,26 @@ Timeout guidelines:
 |-----------|---------|
 | Quick script/edit | 300000 (5 min) |
 | Code review | 600000 (10 min) |
+| Research / email draft | 1200000 (20 min) |
 | Small implementation | 1800000 (30 min) |
 | Full feature implementation | 3600000 (1 hour) |
 | Large multi-phase task | 7200000 (2 hours) |
 
 Default: 1800000 (30 min). Ask the user if unsure.
 
-### Step 3: Generate Task ID
+### Step 5: Determine Task Type Tag
+
+Add a `type:` tag based on the task nature:
+
+| Type tag | When to use |
+|----------|-------------|
+| `type:code` | Implementation, bug fixes, refactoring |
+| `type:review` | Code review, audit |
+| `type:research` | Investigation, analysis, feasibility |
+| `type:email` | Email drafting |
+| `type:admin` | Maintenance, cleanup, config changes |
+
+### Step 6: Generate Task ID
 
 Format: `YYYYMMDD-HHMMSS-<slug>`
 
@@ -54,7 +99,7 @@ Format: `YYYYMMDD-HHMMSS-<slug>`
 
 Example: `tasks/20260315-170000-heimdall-code`
 
-### Step 4: Write the Prompt
+### Step 7: Write the Prompt
 
 Build a clear, explicit prompt. Include:
 
@@ -64,19 +109,23 @@ Build a clear, explicit prompt. Include:
 4. **Constraints** — what NOT to do, privacy rules, tool paths
 5. **Completion signal** — always end with writing result to task namespace
 
-Template:
+#### Template for code tasks (Context: repo:*)
+
 ```markdown
 ## Task: <title>
 
 - **Runtime:** claude | codex
-- **Working dir:** /home/magnus/repos/<project>
+- **Context:** repo:<name>
 - **Timeout:** <ms>
 - **Submitted by:** claude-code-laptop
 - **Submitted at:** <UTC ISO 8601>
+- **Reply-to:** none
+- **Group:** <group-id if part of a group>
+- **Sequence:** <number if part of a group>
 
 ### Prompt
 
-You are working on <project> at `<path>` on the Hugin-Munin Raspberry Pi (huginmunin).
+You are working on <project> at `/home/magnus/repos/<name>` on the Hugin-Munin Raspberry Pi (huginmunin).
 You have MCP access to Munin (`munin-memory` MCP server).
 
 **YOUR MISSION: <one clear sentence>.**
@@ -91,15 +140,24 @@ You have MCP access to Munin (`munin-memory` MCP server).
 
 ...
 
-## Final Phase: Report Completion
+## Final Phase: Commit, Push & Report
 
-1. Update Munin project status:
+1. Commit changes with a conventional commit message.
+
+2. **Push to origin:** `git push origin <branch>` — changes that stay local are invisible to other environments.
+
+3. Update Munin project status:
    memory_write("projects/<name>", "status", <summary>, tags: ["active"])
 
-2. Log the milestone:
+4. Log the milestone:
    memory_log("projects/<name>", "<summary>", tags: ["milestone"])
 
-3. Signal task completion:
+5. **Follow-up actions:** If anything could not be completed (e.g., sandbox blocked sudo, wrong auth, missing resource), append to the shared action list:
+   memory_read("actions", "pending") — read current list first
+   memory_write("actions", "pending", <updated list with new items>, tags: ["active", "action-items"])
+   Format new items as: `## From tasks/<task-id>\n- [ ] <description of what needs to be done and why>`
+
+6. Signal task completion:
    memory_write("tasks/<task-id>", "result", "DONE — <summary>")
 
 ---
@@ -108,6 +166,58 @@ You have MCP access to Munin (`munin-memory` MCP server).
 
 - <list constraints>
 - **Signal completion:** Write "DONE" to `tasks/<task-id>/result` when finished.
+- **Follow-up actions:** If anything remains unresolved, append to `actions/pending` in Munin. Do NOT silently swallow blockers.
+```
+
+#### Template for non-code tasks (Context: scratch)
+
+```markdown
+## Task: <title>
+
+- **Runtime:** claude
+- **Context:** scratch
+- **Timeout:** <ms>
+- **Submitted by:** claude-code-laptop
+- **Submitted at:** <UTC ISO 8601>
+- **Reply-to:** none
+
+### Prompt
+
+You are a general-purpose agent on the Hugin-Munin Raspberry Pi (huginmunin).
+You have MCP access to Munin (`munin-memory` MCP server).
+Your working directory is `/home/magnus/scratch` — a general-purpose workspace for non-code tasks.
+
+**YOUR MISSION: <one clear sentence>.**
+
+---
+
+<task-specific instructions>
+
+---
+
+## Completion
+
+1. Write findings/output to Munin:
+   memory_write("<appropriate-namespace>", "<key>", <content>, tags: [<relevant tags>])
+
+2. If file artifacts were produced, push to NAS inbox:
+   `rsync <file> magnus@100.99.119.52:/home/magnus/mimir-inbox/<path>`
+
+3. **Follow-up actions:** If anything could not be completed, append to the shared action list:
+   memory_read("actions", "pending") — read current list first
+   memory_write("actions", "pending", <updated list with new items>, tags: ["active", "action-items"])
+   Format new items as: `## From tasks/<task-id>\n- [ ] <description of what needs to be done and why>`
+
+4. Signal task completion:
+   memory_write("tasks/<task-id>", "result", "DONE — <summary>")
+
+---
+
+## Constraints
+
+- <list constraints>
+- **Signal completion:** Write "DONE" to `tasks/<task-id>/result` when finished.
+- **Follow-up actions:** If anything remains unresolved, append to `actions/pending` in Munin. Do NOT silently swallow blockers.
 ```
 
 #### Codex-specific notes
@@ -120,19 +230,20 @@ If the Claude task needs to invoke Codex internally (e.g., for adversarial revie
 **Sandbox note:** Use `--dangerously-bypass-approvals-and-sandbox` (Landlock broken on ARM64 Pi)
 ```
 
-### Step 5: Confirm with User
+### Step 8: Confirm with User
 
 Show the user:
-- Task ID
+- Task ID (and group info if multi-task)
+- Context (resolved)
 - Runtime
 - Timeout (human-readable)
-- Working directory
+- Task type tag
 - First line of the mission
 - Full prompt (collapsed or summarized if long)
 
 Ask: "Submit this task? Hugin will pick it up within 30 seconds."
 
-### Step 6: Submit
+### Step 9: Submit
 
 Write to Munin:
 ```
@@ -140,13 +251,13 @@ memory_write(
   namespace: "tasks/<task-id>",
   key: "status",
   content: <the full task content>,
-  tags: ["pending", "runtime:<runtime>"]
+  tags: ["pending", "runtime:<runtime>", "type:<type>"]
 )
 ```
 
 Confirm submission with the returned entry ID.
 
-### Step 7: Monitoring Tips
+### Step 10: Monitoring Tips
 
 Tell the user how to check on it:
 ```
@@ -164,5 +275,11 @@ Check process: ssh huginmunin "ps aux | grep claude"      — is it still runnin
 5. **No secrets in prompts** — API keys, tokens, passwords must come from env vars on the Pi, not the prompt.
 6. **Privacy in committed code** — Remind the task to use placeholders for IPs, emails, domains in any files it commits.
 7. **Codex sandbox** — Always use `--dangerously-bypass-approvals-and-sandbox` on the Pi (Landlock broken on ARM64).
-8. **Working dir must exist** — Verify the directory exists on the Pi, or tell the task to create it.
+8. **Context must resolve** — For `repo:<name>`, the repo must exist on the Pi. For `scratch`, the directory `/home/magnus/scratch` must exist (created by the Hugin enhancements task).
 9. **Timeout is a hard kill** — Hugin kills the process when time's up. Err on the generous side.
+10. **Always git push** — Code tasks must push after committing. Unpushed commits are invisible to the laptop and Heimdall deploy drift tracking.
+11. **Never stop what you can't restart** — Task prompts must include explicit restart commands (e.g., `sudo systemctl restart <service>`) when the task modifies a running service. Agents must NEVER stop a service without restarting it — a stopped service is worse than a buggy one.
+12. **Codex adversarial review** — For non-trivial implementation tasks, include a phase where the agent runs Codex to review the changes before committing. This catches bugs before they land. See `~/.npm-global/bin/codex` with `--dangerously-bypass-approvals-and-sandbox`.
+13. **File outputs go to NAS inbox** — Hugin runs on huginmunin, but the laptop syncs with the NAS Pi (100.99.119.52). If a task produces file outputs (reports, artifacts), it must push them to the NAS inbox: `rsync <file> magnus@100.99.119.52:/home/magnus/mimir-inbox/<path>`. The inbox is auto-imported to the laptop on next sync. Files left on huginmunin or written directly to NAS `~/mimir/` will be lost.
+14. **Non-code tasks use scratch** — Research, email drafts, admin tasks go to `Context: scratch`. The scratch workspace has its own CLAUDE.md with tool orientation.
+15. **Follow-up actions go to `actions/pending`** — If a task can't complete something (sandbox blocked sudo, wrong auth, missing resource), it must append the unresolved item to `actions/pending` in Munin. Read the current list first, then write back with the new item appended. This ensures nothing gets silently lost. Format: `## From tasks/<task-id>\n- [ ] <what needs doing and why>`.
