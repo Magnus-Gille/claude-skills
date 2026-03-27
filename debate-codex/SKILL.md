@@ -47,9 +47,70 @@ Freeze the artifact being reviewed so all review conditions run against the same
 
 Write Claude's position/assessment/plan to `debate/<topic>-claude-draft.md`.
 
+**Every draft must include these four sections**, regardless of topic type:
+
+```markdown
+## Assumptions
+[List load-bearing assumptions — things that must be true for this to work]
+
+## Failure Modes
+[What goes wrong if this fails? How does it fail? What's the blast radius?]
+
+## Alternatives Rejected
+[What options were considered and discarded, and why]
+
+## Unknowns
+[What remains uncertain that could invalidate this position]
+```
+
+These sections give both self-review and Codex concrete material to attack. A draft without them is not ready for review.
+
 ### Step 2: Self-review
 
-Before invoking Codex, Claude critiques its own draft. Write to `debate/<topic>-claude-self-review.md`. Be genuinely critical — this baseline reveals whether cross-model review adds value over self-review. The `caught_by_self_review` field in the critique log (Step 8) tracks this.
+Before invoking Codex, Claude critiques its own draft using the topic-specific checklist below. Write to `debate/<topic>-claude-self-review.md`.
+
+**Identify the debate type first,** then work through the relevant checklist. Be genuinely critical — this baseline reveals whether cross-model review adds value over self-review. The `caught_by_self_review` field in the critique log (Step 8) tracks this.
+
+#### Universal checklist (all types)
+- [ ] What assumptions in the draft might not hold? Are they listed in the Assumptions section?
+- [ ] Are the failure modes exhaustive, or just the obvious ones?
+- [ ] What's the strongest argument *against* my own position?
+- [ ] What evidence or baseline is missing?
+- [ ] What operational/maintenance burden is hidden or understated?
+
+#### Security debates
+- [ ] What are the trust boundaries? What crosses them?
+- [ ] What happens if an attacker controls a key input or state?
+- [ ] Are auth, authz, and session management failure modes covered?
+- [ ] What's the blast radius of a compromise?
+- [ ] Are secrets, keys, and credentials handled correctly throughout?
+
+#### Architecture debates
+- [ ] What scale, load, or data-size assumptions are baked in?
+- [ ] What coupling is being introduced, and what does it preclude later?
+- [ ] How does the system degrade under partial failure?
+- [ ] What's the operational burden (deployment, monitoring, incident response)?
+- [ ] What's the reversibility cost if this turns out to be wrong?
+
+#### Protocol/API debates
+- [ ] What are the edge cases in the protocol state machine?
+- [ ] What happens to in-flight requests during failures or restarts?
+- [ ] What does a client do when it gets an unexpected response?
+- [ ] What's the versioning and backward-compatibility story?
+- [ ] What are the timeout, retry, and idempotency semantics?
+
+#### Docs/process debates
+- [ ] What's the maintenance burden? Who keeps this updated?
+- [ ] Where does this conflict with or duplicate existing documentation?
+- [ ] What's the single source of truth, and is it unambiguous?
+- [ ] What would a newcomer need that's missing here?
+
+#### Priority/product debates
+- [ ] What evidence supports this priority over alternatives?
+- [ ] What are the opportunity costs of this choice?
+- [ ] What assumptions about user or system behavior are load-bearing?
+- [ ] What does "done" look like, and how would we know if it worked?
+- [ ] What's the reversibility of this decision?
 
 ### Step 3: Invoke Codex (Round 1 critique)
 
@@ -111,14 +172,23 @@ Create `debate/<topic>-critique-log.json` with every critique point from all rou
     "source": "codex-round-1",
     "text": "Brief description of the critique point",
     "classification": "valid | partially_valid | invalid",
-    "impact": "changed | acknowledged | rejected",
+    "impact": "changed | partially_changed | acknowledged | deferred | rejected",
     "severity": "critical | major | minor",
     "caught_by_self_review": true | false
   }
 ]
 ```
 
+**Impact values:**
+- `changed` — position or plan materially changed as a result
+- `partially_changed` — partial change; some aspects adopted, others defended
+- `acknowledged` — accepted as valid but no immediate action taken
+- `deferred` — valid point, intentionally set aside for later
+- `rejected` — disagreed with and defended
+
 Classification and impact should be filled after the debate concludes.
+
+**Periodic synthesis (every 5–10 debates):** Look at `impact` across recent critique logs. Which severity levels produce the most `changed` outcomes? Which `critical` points were `rejected`? Which `minor` points drove `changed`? Revise the Step 2 checklists if a pattern is consistent. This is more useful than per-debate instrumentation.
 
 ### Step 8.5: Sanitize PII in debate artifacts
 
