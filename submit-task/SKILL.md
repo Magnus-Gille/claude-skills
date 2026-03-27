@@ -78,6 +78,19 @@ Timeout guidelines:
 
 Default: 1800000 (30 min). Ask the user if unsure.
 
+### Step 4b: Choose Model (optional)
+
+Hugin supports model selection via the `**Model:**` field. If omitted, uses the Pi's default model.
+
+| Model | When to use |
+|-------|-------------|
+| `claude-sonnet-4-6` | Implementation tasks with clear specs, routine code changes |
+| `claude-opus-4-6` | Complex architecture, ambiguous requirements, tasks that failed on Sonnet |
+| `opusplan` | Plans with Opus, implements with Sonnet (good for complex but decomposable tasks) |
+| *(omit)* | Uses Pi default (currently Opus) |
+
+Default: `claude-sonnet-4-6` for well-scoped code tasks. Use `claude-opus-4-6` or `opusplan` for complex/ambiguous tasks. Omit for non-code tasks (research, email) where model choice matters less.
+
 ### Step 5: Determine Task Type Tag
 
 Add a `type:` tag based on the task nature:
@@ -116,6 +129,7 @@ Build a clear, explicit prompt. Include:
 
 - **Runtime:** claude | codex
 - **Context:** repo:<name>
+- **Model:** <optional: claude-sonnet-4-6 | claude-opus-4-6 | opusplan>
 - **Timeout:** <ms>
 - **Submitted by:** claude-code-laptop
 - **Submitted at:** <UTC ISO 8601>
@@ -283,3 +297,4 @@ Check process: ssh huginmunin "ps aux | grep claude"      — is it still runnin
 13. **File outputs go to NAS inbox** — Hugin runs on huginmunin, but the laptop syncs with the NAS Pi (100.99.119.52). If a task produces file outputs (reports, artifacts), it must push them to the NAS inbox: `rsync <file> magnus@100.99.119.52:/home/magnus/mimir-inbox/<path>`. The inbox is auto-imported to the laptop on next sync. Files left on huginmunin or written directly to NAS `~/mimir/` will be lost.
 14. **Non-code tasks use scratch** — Research, email drafts, admin tasks go to `Context: scratch`. The scratch workspace has its own CLAUDE.md with tool orientation.
 15. **Follow-up actions go to `actions/pending`** — If a task can't complete something (sandbox blocked sudo, wrong auth, missing resource), it must append the unresolved item to `actions/pending` in Munin. Read the current list first, then write back with the new item appended. This ensures nothing gets silently lost. Format: `## From tasks/<task-id>\n- [ ] <what needs doing and why>`.
+16. **Never use deploy targets as working directories** — Some projects have separate deploy paths (e.g., mimir deploys to `~/mimir-server/` on the NAS Pi via rsync). Changes made there get overwritten on the next deploy. Always use `repo:<name>` (resolves to `~/repos/<name>` on huginmunin) so changes are committed and pushed to GitHub, surviving future deploys.
