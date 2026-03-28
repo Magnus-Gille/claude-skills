@@ -158,7 +158,7 @@ You have MCP access to Munin (`munin-memory` MCP server).
 
 1. Commit changes with a conventional commit message.
 
-2. **Push to origin:** `git push origin <branch>` — changes that stay local are invisible to other environments.
+2. **Push to origin — REQUIRED:** `git push origin <branch>` — commits that are not pushed are invisible to other environments and will be flagged as drift in Heimdall. Hugin will attempt a fallback push, but you must push explicitly.
 
 3. Update Munin project status:
    memory_write("projects/<name>", "status", <summary>, tags: ["active"])
