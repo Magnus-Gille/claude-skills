@@ -12,6 +12,7 @@ Submit a task to the Hugin dispatcher running on the Pi (huginmunin). Hugin poll
 - `/submit-task` - Interactive: ask what the task should do, then build the prompt together
 - `/submit-task <description>` - Build a task from the description, confirm before submitting
 - `/submit-task codex <description>` - Use Codex runtime instead of Claude
+- `/submit-task ollama <description>` - Use local ollama model on Pi (or laptop if available)
 
 ## How It Works
 
@@ -63,8 +64,25 @@ If the task involves **multiple repos** or **clearly sequential phases with diff
 |---------|-------------|-----------|
 | `claude` | Most tasks — implementation, multi-step work, Munin integration | `runtime:claude` |
 | `codex` | Pure code review, quick file edits, single-focus tasks | `runtime:codex` |
+| `ollama` | Bounded tasks suitable for small models — summarization, triage, log analysis, status review, structured data extraction. No tool use. | `runtime:ollama` |
 
 Default runtime: `claude`
+
+**Ollama-specific fields** (only for `runtime: ollama`):
+
+| Field | Values | Default | Purpose |
+|-------|--------|---------|---------|
+| `Ollama-host` | `pi`, `laptop`, or URL | auto (prefers pi) | Which ollama instance to target |
+| `Fallback` | `claude`, `none` | `none` | Fall back to Claude on **infra failures only** (host unreachable, 5xx). Semantic failure (model responds but poorly) is never retried — that's experiment data. |
+| `Model` | e.g. `qwen2.5:3b`, `qwen2.5:7b` | `qwen2.5:3b` | Ollama model name. 3b is default (fits Pi comfortably). 7b is available but causes swap pressure. |
+| `Context-refs` | Comma-separated Munin refs | *(none)* | Munin entries to fetch and inject into prompt. Format: `namespace/key`. E.g. `meta/conventions/status, projects/heimdall/status` |
+| `Context-budget` | Integer (chars) | `8000` | Max characters for injected context. Truncated from end if exceeded. |
+
+**When to use ollama vs claude:**
+- Use `ollama` when the task is bounded, doesn't need tools (file editing, shell, MCP), and the output quality bar is "good enough" not "best possible."
+- Use `claude` when the task needs tool use, multi-step reasoning, code changes, or high-quality judgment.
+- Set `Fallback: claude` on important ollama tasks where failure is costly.
+- Ollama models have NO tool access — everything the model needs must be in the prompt (via Context-refs or inline data).
 
 Timeout guidelines:
 | Task type | Timeout |
@@ -75,21 +93,26 @@ Timeout guidelines:
 | Small implementation | 1800000 (30 min) |
 | Full feature implementation | 3600000 (1 hour) |
 | Large multi-phase task | 7200000 (2 hours) |
+| Ollama task (3b, short) | 120000 (2 min) |
+| Ollama task (7b or longer input) | 300000 (5 min) |
 
-Default: 1800000 (30 min). Ask the user if unsure.
+Default: 1800000 (30 min) for claude/codex, 120000 (2 min) for ollama. Ask the user if unsure.
+Note: Ollama cold-starts (model not in memory) add ~5-60s depending on model size. The 5 min idle auto-unload means most scheduled tasks will hit a cold start.
 
 ### Step 4b: Choose Model (optional)
 
 Hugin supports model selection via the `**Model:**` field. If omitted, uses the Pi's default model.
 
-| Model | When to use |
-|-------|-------------|
-| `claude-sonnet-4-6` | Implementation tasks with clear specs, routine code changes |
-| `claude-opus-4-6` | Complex architecture, ambiguous requirements, tasks that failed on Sonnet |
-| `opusplan` | Plans with Opus, implements with Sonnet (good for complex but decomposable tasks) |
-| *(omit)* | Uses Pi default (currently Opus) |
+| Model | Runtime | When to use |
+|-------|---------|-------------|
+| `claude-sonnet-4-6` | claude | Implementation tasks with clear specs, routine code changes |
+| `claude-opus-4-6` | claude | Complex architecture, ambiguous requirements, tasks that failed on Sonnet |
+| `opusplan` | claude | Plans with Opus, implements with Sonnet (good for complex but decomposable tasks) |
+| `qwen2.5:3b` | ollama | Default for Pi. Fits comfortably (1.9 GB). Good for bounded structured tasks. |
+| `qwen2.5:7b` | ollama | Higher quality but causes swap on Pi (~4.7 GB). Use for tasks needing better reasoning. |
+| *(omit)* | any | Uses runtime default (Claude: Opus, Ollama: qwen2.5:3b) |
 
-Default: `claude-sonnet-4-6` for well-scoped code tasks. Use `claude-opus-4-6` or `opusplan` for complex/ambiguous tasks. Omit for non-code tasks (research, email) where model choice matters less.
+Default: `claude-sonnet-4-6` for well-scoped code tasks. Use `claude-opus-4-6` or `opusplan` for complex/ambiguous tasks. For ollama, default to `qwen2.5:3b` unless the task needs better quality.
 
 ### Step 5: Determine Task Type Tag
 
@@ -233,6 +256,38 @@ Your working directory is `/home/magnus/scratch` — a general-purpose workspace
 - **Signal completion:** Write "DONE" to `tasks/<task-id>/result` when finished.
 - **Follow-up actions:** If anything remains unresolved, append to `actions/pending` in Munin. Do NOT silently swallow blockers.
 ```
+
+#### Template for ollama tasks (Runtime: ollama)
+
+```markdown
+## Task: <title>
+
+- **Runtime:** ollama
+- **Context:** scratch
+- **Model:** qwen2.5:3b
+- **Ollama-host:** pi
+- **Fallback:** none
+- **Context-refs:** <comma-separated Munin refs, if needed>
+- **Context-budget:** 8000
+- **Timeout:** <ms>
+- **Submitted by:** claude-code-laptop
+- **Submitted at:** <UTC ISO 8601>
+- **Reply-to:** none
+
+### Prompt
+
+<task instructions — must be fully self-contained>
+<include all data inline if not using Context-refs>
+```
+
+**Ollama prompt guidelines:**
+- **No tool-use instructions** — the model has no tools. Everything it needs must be in the prompt.
+- **No MCP references** — the model cannot call Munin, write results, or interact with services.
+- **No completion signal** — Hugin captures the model output directly. No `memory_write` to result key needed (Hugin does this automatically).
+- **Be specific about output format** — small models follow explicit format instructions better than vague ones.
+- **Keep prompts focused** — one clear task, not multi-phase workflows.
+- **Use Context-refs** for Munin state the model needs to read — Hugin fetches and injects it before calling the model.
+- **Inline data directly** for non-Munin content (journal entries, file contents, etc.)
 
 #### Codex-specific notes
 
