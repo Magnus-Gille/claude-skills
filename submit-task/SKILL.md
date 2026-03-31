@@ -154,7 +154,7 @@ Build a clear, explicit prompt. Include:
 - **Context:** repo:<name>
 - **Model:** <optional: claude-sonnet-4-6 | claude-opus-4-6 | opusplan>
 - **Timeout:** <ms>
-- **Submitted by:** claude-code-laptop
+- **Submitted by:** claude-code
 - **Submitted at:** <UTC ISO 8601>
 - **Reply-to:** none
 - **Group:** <group-id if part of a group>
@@ -214,7 +214,7 @@ You have MCP access to Munin (`munin-memory` MCP server).
 - **Runtime:** claude
 - **Context:** scratch
 - **Timeout:** <ms>
-- **Submitted by:** claude-code-laptop
+- **Submitted by:** claude-code
 - **Submitted at:** <UTC ISO 8601>
 - **Reply-to:** none
 
@@ -270,7 +270,7 @@ Your working directory is `/home/magnus/scratch` — a general-purpose workspace
 - **Context-refs:** <comma-separated Munin refs, if needed>
 - **Context-budget:** 8000
 - **Timeout:** <ms>
-- **Submitted by:** claude-code-laptop
+- **Submitted by:** claude-code
 - **Submitted at:** <UTC ISO 8601>
 - **Reply-to:** none
 
