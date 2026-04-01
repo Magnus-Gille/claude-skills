@@ -114,18 +114,43 @@ Before invoking Codex, Claude critiques its own draft using the topic-specific c
 
 ### Step 3: Invoke Codex (Round 1 critique)
 
+Use the debate type identified in Step 2 to shape the Codex prompt. The type-specific questions below are **additive** — always include the universal adversarial framing, then layer on domain-specific attack vectors.
+
+For **mixed-type debates** (e.g., architecture + security), combine the relevant sections. List the primary type first.
+
 ```bash
 script -q /dev/null codex exec --full-auto "You are acting as a grounded but adversarial reviewer.
 
 Read the file debate/<topic>-claude-draft.md. [Additional context files to read if needed.]
 
-Your job is to critique this. Be skeptical but intellectually honest — no strawmanning. Ground critique in evidence, not opinion. Specifically:
-- [List specific questions for this debate]
+Your job is to critique this. Be skeptical but intellectually honest — no strawmanning. Ground critique in evidence, not opinion.
+
+Universal:
 - Acknowledge strengths before attacking weaknesses
 - Be specific — cite concrete issues with file:line references, not vague concerns
+- Flag unsupported claims, missing baselines, and methodological gaps
+
+[Include the type-specific block(s) below that match the debate type]
 
 Write your full critique to debate/<topic>-codex-critique.md in markdown format." 2>&1
 ```
+
+#### Type-specific prompt blocks
+
+**Security debates — add:**
+> Also specifically examine: trust boundary crossings and what validates each one, auth/authz/session failure modes under adversarial input, blast radius if any single component is compromised, secrets and credential handling throughout the lifecycle.
+
+**Architecture debates — add:**
+> Also specifically examine: scale/load/data-size assumptions baked into the design, coupling introduced and what it forecloses, degradation behavior under partial failure, operational burden (deployment, monitoring, incident response), reversibility cost if this turns out wrong.
+
+**Protocol/API debates — add:**
+> Also specifically examine: edge cases in the protocol state machine, behavior of in-flight requests during failures or restarts, client behavior on unexpected responses, versioning and backward-compatibility story, timeout/retry/idempotency semantics.
+
+**Docs/process debates — add:**
+> Also specifically examine: maintenance burden and who keeps this updated, conflicts with or duplication of existing documentation, whether the single source of truth is unambiguous, what a newcomer would need that is missing.
+
+**Priority/product debates — add:**
+> Also specifically examine: evidence supporting this priority over alternatives, opportunity costs, load-bearing assumptions about user or system behavior, what "done" looks like and how success would be measured, reversibility of the decision.
 
 ### Step 4: Verify Codex output
 
@@ -145,10 +170,10 @@ Read the critique carefully. Write a response to `debate/<topic>-claude-response
 
 ### Step 6: Invoke Codex (Round 2 rebuttal)
 
-Run Codex again, pointing it to all files so far (draft, critique, response). Ask it to:
+Run Codex again, pointing it to all files so far (draft, critique, response). **Reuse the same type-specific prompt block(s) from Step 3** so the rebuttal maintains the same domain-specific lens. Ask it to:
 - Acknowledge which concessions are genuine and adequate
 - Identify where defenses are valid vs where they dodge the point
-- Flag any new issues that emerged
+- Flag any new issues that emerged, including domain-specific risks from the Step 3 type block
 - Give a final verdict on the single most important next step
 
 Write to `debate/<topic>-codex-rebuttal-1.md`.
@@ -185,6 +210,14 @@ Create `debate/<topic>-critique-log.json` with every critique point from all rou
 - `acknowledged` — accepted as valid but no immediate action taken
 - `deferred` — valid point, intentionally set aside for later
 - `rejected` — disagreed with and defended
+
+**Severity measures the consequence of ignoring the critique point**, anchored to two dimensions:
+
+- **critical** — Ignoring this would cause a correctness, security, or design flaw with **wide blast radius** (affects multiple components, users, or data paths) AND the resulting damage is **hard to reverse** once shipped or committed to.
+- **major** — Ignoring this is a real problem, but either the blast radius is **contained** (affects one component or a narrow path) OR the damage is **reversible** with reasonable effort.
+- **minor** — Valid observation, but ignoring it has **low consequence** — cosmetic, stylistic, or affects edge cases that are unlikely to matter in practice.
+
+When in doubt between two levels, ask: "If we ship with this issue and discover it in 3 months, how bad is the recovery?" Hard recovery = bump up. Easy recovery = keep it where it is.
 
 Classification and impact should be filled after the debate concludes.
 
