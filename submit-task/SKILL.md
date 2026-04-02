@@ -128,9 +128,17 @@ Add a `type:` tag based on the task nature:
 
 ### Step 6: Generate Task ID
 
-Format: `YYYYMMDD-HHMMSS-<slug>`
+Format: `YYYYMMDD-HHMMSS-<slug>` — **all three parts are required**.
 
-- Date/time in **UTC** (use `new Date().toISOString()`)
+Generate the date-time prefix from the current UTC time:
+```js
+const d = new Date();
+const pad = (n) => String(n).padStart(2, '0');
+const prefix = `${d.getUTCFullYear()}${pad(d.getUTCMonth()+1)}${pad(d.getUTCDate())}-${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}`;
+// e.g. "20260315-170000"
+```
+
+- The `HHMMSS` portion is **mandatory** — omitting it breaks Heimdall's task display
 - Slug: 2-4 word kebab-case summary (e.g. `heimdall-code`, `fix-backup-detection`, `codex-review`)
 
 Example: `tasks/20260315-170000-heimdall-code`
