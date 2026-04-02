@@ -69,7 +69,17 @@ These sections give both self-review and Codex concrete material to attack. A dr
 
 Before invoking Codex, Claude critiques its own draft using the topic-specific checklist below. Write to `debate/<topic>-claude-self-review.md`.
 
-**Identify the debate type first,** then work through the relevant checklist. Be genuinely critical — this baseline reveals whether cross-model review adds value over self-review. The `caught_by_self_review` field in the critique log (Step 8) tracks this.
+**Identify the debate type first** and declare it as a structured field at the top of the self-review file:
+
+```markdown
+## Debate Type
+Primary: <security | architecture | protocol | docs | priority>
+Secondary: <type, if mixed> (omit if single-type)
+```
+
+This classification drives the type-specific prompts in Steps 3 and 6. For mixed-type debates, list the primary type first.
+
+Then work through the relevant checklist. Be genuinely critical — this baseline reveals whether cross-model review adds value over self-review. The `caught_by_self_review` field in the critique log (Step 8) tracks this.
 
 #### Universal checklist (all types)
 - [ ] What assumptions in the draft might not hold? Are they listed in the Assumptions section?
@@ -114,9 +124,9 @@ Before invoking Codex, Claude critiques its own draft using the topic-specific c
 
 ### Step 3: Invoke Codex (Round 1 critique)
 
-Use the debate type identified in Step 2 to shape the Codex prompt. The type-specific questions below are **additive** — always include the universal adversarial framing, then layer on domain-specific attack vectors.
+Read the `## Debate Type` field from `debate/<topic>-claude-self-review.md` and include the matching type-specific block(s) below. The type-specific questions are **additive** — always include the universal adversarial framing, then layer on domain-specific attack vectors.
 
-For **mixed-type debates** (e.g., architecture + security), combine the relevant sections. List the primary type first.
+For **mixed-type debates**, include blocks for both primary and secondary types. Primary type block goes first.
 
 ```bash
 script -q /dev/null codex exec --full-auto "You are acting as a grounded but adversarial reviewer.
@@ -170,7 +180,7 @@ Read the critique carefully. Write a response to `debate/<topic>-claude-response
 
 ### Step 6: Invoke Codex (Round 2 rebuttal)
 
-Run Codex again, pointing it to all files so far (draft, critique, response). **Reuse the same type-specific prompt block(s) from Step 3** so the rebuttal maintains the same domain-specific lens. Ask it to:
+Run Codex again, pointing it to all files so far (draft, critique, response). **Re-read the `## Debate Type` field from the self-review and include the same type-specific prompt block(s) used in Step 3** so the rebuttal maintains the same domain-specific lens. Ask it to:
 - Acknowledge which concessions are genuine and adequate
 - Identify where defenses are valid vs where they dodge the point
 - Flag any new issues that emerged, including domain-specific risks from the Step 3 type block
