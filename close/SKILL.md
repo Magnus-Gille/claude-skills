@@ -1,5 +1,7 @@
 # /close - Session Closing Checklist
 
+> **Model:** This skill runs fine on Sonnet. If you're on Opus, switch first: `/model sonnet`
+
 Run before ending a session to ensure everything is properly wrapped up.
 
 ## Usage
