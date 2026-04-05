@@ -177,6 +177,19 @@ You have MCP access to Munin (`munin-memory` MCP server).
 
 ---
 
+## Phase 0: Sync repo
+
+Before making any changes, ensure the local repo is up-to-date:
+
+```bash
+git fetch origin
+git rebase origin/main
+```
+
+If the rebase fails due to conflicts or a dirty worktree, stop and report the error — do not proceed with stale code.
+
+---
+
 ## Phase 1: <name>
 <steps>
 
