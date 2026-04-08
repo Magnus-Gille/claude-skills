@@ -107,6 +107,7 @@ Tell the user:
 
 - **Runtime:** claude
 - **Context:** scratch
+- **Sensitivity:** internal
 - **Model:** claude-opus-4-6
 - **Timeout:** <typically 3600000 for deep research>
 - **Submitted by:** claude-code
