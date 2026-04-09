@@ -31,6 +31,22 @@ script -q /dev/null codex exec --full-auto -m gpt-5.4 -c model_reasoning_effort=
 - Set `--timeout 300000` on the Bash tool call (Codex can take a few minutes; with `xhigh` effort it may run longer — consider `--timeout 600000`)
 - Codex works in the repo's working directory and can read all project files
 
+## Munin Memory Access
+
+Codex is configured with the full Munin memory tool surface (`memory_read`, `memory_query`, `memory_orient`, `memory_history`, `memory_narrative`, `memory_commitments`, `memory_patterns`, `memory_insights`, `memory_handoff`, `memory_resume`, `memory_attention`, `memory_extract`, `memory_read_batch`, `memory_get`, `memory_list`, `memory_status`). Use this to give Codex **live** project context instead of pasting a snapshot into the prompt.
+
+**Infer the Munin namespace from the current git repo** before invoking Codex:
+
+```bash
+git remote get-url origin 2>/dev/null | sed -E 's|.*/([^/]+?)(\.git)?$|projects/\1|'
+```
+
+- Example: repo `munin-memory` → namespace `projects/munin-memory`
+- If the repo name doesn't map cleanly (fork, monorepo, cross-cutting topic), ask the user. Do not guess.
+- If there is no matching Munin namespace at all (new project, methodology debate, topic not yet represented), skip the memory access instructions in the Codex prompt and note this in the draft.
+
+Pass the inferred namespace as a placeholder substitution into the Codex prompts in Steps 3 and 6. Do **not** pre-assemble context into a file — let Codex self-serve from Munin at critique time, so Round 1 and Round 2 read live state rather than a stale snapshot.
+
 ## Debate Protocol
 
 ### Step 0: Snapshot the artifact
@@ -134,6 +150,14 @@ script -q /dev/null codex exec --full-auto -m gpt-5.4 -c model_reasoning_effort=
 
 Read the file debate/<topic>-claude-draft.md. [Additional context files to read if needed.]
 
+LOAD PROJECT CONTEXT FROM MUNIN FIRST. You have full access to Munin memory tools. Before critiquing, run these calls in order:
+1. memory_read(namespace: '<namespace>', key: 'synthesis') — load the current synthesized project state
+2. If synthesis_age_days > 3, or the entry is marked stale, or missing → memory_read(namespace: '<namespace>', key: 'status') as fallback
+3. memory_query(query: '<topic keywords>', tags: ['decision'], limit: 5) — surface prior decisions that may constrain or relate to this debate
+4. Optionally call memory_history, memory_narrative, memory_commitments, or memory_patterns on the namespace if the debate type would benefit (architecture → narrative; priority → commitments; protocol → history)
+
+Ground your critique in this live project state, not just the draft file. If the draft contradicts or omits something the memory shows, flag it as a first-class finding.
+
 Your job is to critique this. Be skeptical but intellectually honest — no strawmanning. Ground critique in evidence, not opinion.
 
 Universal:
@@ -143,8 +167,10 @@ Universal:
 
 [Include the type-specific block(s) below that match the debate type]
 
-Write your full critique to debate/<topic>-codex-critique.md in markdown format." 2>&1
+Write your full critique to debate/<topic>-codex-critique.md in markdown format. In the critique, include a brief 'Context loaded' section at the top listing which memory tools you called and any notable gaps or conflicts between the draft and the memory state." 2>&1
 ```
+
+**Namespace substitution:** Before running this command, replace `<namespace>` with the value inferred from `git remote get-url origin` per the **Munin Memory Access** section above. If no Munin namespace applies (new project, cross-cutting topic), remove the entire `LOAD PROJECT CONTEXT FROM MUNIN FIRST` paragraph and the `Context loaded` sentence at the end before invoking Codex.
 
 #### Type-specific prompt blocks
 
@@ -181,10 +207,15 @@ Read the critique carefully. Write a response to `debate/<topic>-claude-response
 
 ### Step 6: Invoke Codex (Round 2 rebuttal)
 
-Run Codex again, pointing it to all files so far (draft, critique, response). **Re-read the `## Debate Type` field from the self-review and include the same type-specific prompt block(s) used in Step 3** so the rebuttal maintains the same domain-specific lens. Ask it to:
+Run Codex again, pointing it to all files so far (draft, critique, response). **Re-read the `## Debate Type` field from the self-review and include the same type-specific prompt block(s) used in Step 3** so the rebuttal maintains the same domain-specific lens.
+
+**Re-load project context from Munin.** Include the same `LOAD PROJECT CONTEXT FROM MUNIN FIRST` paragraph from Step 3 (with the same inferred `<namespace>`). Round 2 may happen minutes or hours after Round 1 — memory state may have moved. Instruct Codex to note if synthesis, status, or decisions have changed since Round 1 and let that shape the rebuttal. If no Munin namespace applies, omit the paragraph as in Step 3.
+
+Ask Codex to:
 - Acknowledge which concessions are genuine and adequate
 - Identify where defenses are valid vs where they dodge the point
 - Flag any new issues that emerged, including domain-specific risks from the Step 3 type block
+- Flag any drift between Round 1 and Round 2 memory state (new decisions, status updates)
 - Give a final verdict on the single most important next step
 
 Write to `debate/<topic>-codex-rebuttal-1.md`.
@@ -246,6 +277,7 @@ Before writing the summary, scan all debate files for PII and local environment 
 
 Apply these replacements to all `debate/<topic>-*` files created in this debate. This is especially important for:
 - Codex critique/rebuttal files (Codex may echo back paths or identifiers from project context)
+- **Codex critique/rebuttal files that quote memory-tool output** — Codex now loads project state from Munin, so critiques may quote `clients/<name>/*`, `people/<name>/*`, or cross-references that expose private relationships. Scrub namespace paths containing real names, and collapse `clients/<name>/...` → `clients/<client>/...` when in doubt.
 - Critique log JSON files (may contain quoted content with paths)
 - Snapshots of project files used as debate input
 
