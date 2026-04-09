@@ -10,11 +10,30 @@ Run a structured adversarial review using the Codex CLI. This skill handles the 
 
 ## Git Handling
 
-Debate files are **process artifacts**, not deliverables. By default, add `debate/` to `.gitignore`. The summaries and critique logs are useful but belong in project documentation if needed — copy the relevant conclusions into your actual docs/ADRs rather than tracking the raw debate files.
+Debate files split into two tiers: **searchable artifacts** worth tracking, and **raw process logs** that aren't. Drafts, self-reviews, critiques, responses, and rebuttals are scratch paper — they are load-bearing *during* the debate and noise afterward. Summaries, critique logs, and the index are the searchable residue that has cross-debate reuse value (decision history, catch-rate tracking, "have I debated this before?" queries).
 
-If the project specifically studies the debate process itself (methodology research), track the files. But that's the exception.
+**Default pattern — track summaries, gitignore the rest.** In the project's `.gitignore`:
 
-Before the first debate in a project, check if `debate/` is gitignored. If not, suggest adding it.
+```
+debate/*
+!debate/INDEX.md
+!debate/*-summary.md
+!debate/*-critique-log.json
+```
+
+This commits `INDEX.md`, each debate's `*-summary.md`, and the structured `*-critique-log.json` files. Everything else (drafts, self-reviews, raw critiques, rebuttals, snapshots) stays local.
+
+**Rationale:**
+- Summaries distill the conclusions. They're what a reader actually needs.
+- Critique logs are small, structured, and enable pattern recognition across debates (severity distributions, self-review catch rate trends, which critiques were rejected vs adopted).
+- Raw rebuttals and drafts are verbose, context-specific, and rarely re-read. Keeping them out of git avoids repo bloat and leaking in-progress reasoning.
+- INDEX.md is the directory — without it, committed summaries are orphaned.
+
+**Exception — full tracking:** If the project specifically studies the debate *process* (methodology research, prompt engineering on the skill itself), commit everything. That's rare.
+
+**Exception — nothing tracked:** If the debate outcome was fully incorporated into an ADR or plan file that's already committed, and no one will ever search for the debate again, gitignoring the whole `debate/` directory is fine too.
+
+Before the first debate in a project, check if `debate/` is gitignored. If not, suggest adding the default pattern above. If it's already fully gitignored (the old default), suggest upgrading to the summaries-tracked pattern so the corpus accumulates.
 
 ## Codex CLI Invocation
 
