@@ -47,7 +47,7 @@ Check the diff size. If over 5000 lines, warn the user that the review may be ex
 ### Step 3: Invoke Codex
 
 ```bash
-script -q /dev/null codex exec --full-auto "You are a senior code reviewer performing a thorough review of a pull request.
+script -q /dev/null codex exec --full-auto -m gpt-5.4 -c model_reasoning_effort='"xhigh"' "You are a senior code reviewer performing a thorough review of a pull request.
 
 Read the diff at /tmp/codex-pr-review-diff.txt and the commit log at /tmp/codex-pr-review-commits.txt.
 Also read any source files referenced in the diff to understand the full context.
@@ -72,7 +72,8 @@ Write your complete review to /tmp/codex-pr-review-result.md in markdown format.
 
 **Important:**
 - Use `--full-auto` (not `-q` or `-o`)
-- Set Bash tool `--timeout 300000` (Codex can take a few minutes)
+- **Pin the strongest model and effort:** `-m gpt-5.4 -c model_reasoning_effort='"xhigh"'`. Cross-model PR reviews are high-stakes — use the "best model / Extra High" setting, not the everyday config default.
+- Set Bash tool `--timeout 300000` (Codex can take a few minutes; `xhigh` effort may push closer to the limit — consider `--timeout 600000`)
 - Codex writes its output to a file; do NOT rely on `-o` for review content
 
 ### Step 4: Read and verify the review
