@@ -127,7 +127,6 @@ Claude Code is the bridge between local files and Munin. Desktop, Web, and Mobil
    - **Phase:** Current project phase or milestone
    - **Current work:** What's actively being worked on (1-2 sentences)
    - **Blockers:** Anything preventing progress (or "None")
-3. Update the project's auto memory file (MEMORY.md) if it exists
 
 ### 8. Skills Repo Sync
 
