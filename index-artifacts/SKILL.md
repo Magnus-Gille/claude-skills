@@ -9,7 +9,7 @@ Scan files in `~/mimir/` (the local artifact archive), extract metadata and summ
 
 ## Model Check
 
-If the current model is Opus, run `/model sonnet` and wait for confirmation before proceeding. This skill is pure Munin-write workload — metadata extraction plus `documents/*` writes — and runs fine on Sonnet.
+If the current model is Opus, stop and ask the user to run `/model sonnet`, then wait for them to confirm the switch before proceeding. This skill is pure Munin-write workload — metadata extraction plus `documents/*` writes — and runs fine on Sonnet.
 
 ## Usage
 

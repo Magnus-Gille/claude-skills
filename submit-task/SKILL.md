@@ -9,7 +9,7 @@ Submit a task to the Hugin dispatcher running on the Pi (huginmunin). Hugin poll
 
 ## Model Check
 
-If the current model is Opus, run `/model sonnet` and wait for confirmation before proceeding. This skill is prompt-crafting plus a Munin write — Sonnet handles it fine, and the actual task runs on the Pi under its own runtime anyway.
+If the current model is Opus, stop and ask the user to run `/model sonnet`, then wait for them to confirm the switch before proceeding. This skill is prompt-crafting plus a Munin write — Sonnet handles it fine, and the actual task runs on the Pi under its own runtime anyway.
 
 ## Usage
 
