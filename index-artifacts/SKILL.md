@@ -7,6 +7,10 @@ description: Index files from ~/mimir/ into Munin documents/* namespace, making 
 
 Scan files in `~/mimir/` (the local artifact archive), extract metadata and summaries, and write entries to Munin's `documents/*` namespace so that all Claude environments (Desktop, Web, Mobile) can discover and query documents without direct file access.
 
+## Model Check
+
+If the current model is Opus, run `/model sonnet` and wait for confirmation before proceeding. This skill is pure Munin-write workload — metadata extraction plus `documents/*` writes — and runs fine on Sonnet.
+
 ## Usage
 
 - `/index-artifacts` — Interactive: show what's new/changed, confirm before writing

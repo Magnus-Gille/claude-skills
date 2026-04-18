@@ -7,6 +7,10 @@ description: Submit a task to Hugin (the Pi task dispatcher) by writing a proper
 
 Submit a task to the Hugin dispatcher running on the Pi (huginmunin). Hugin polls Munin every 30 seconds for pending tasks and spawns an AI runtime to execute them.
 
+## Model Check
+
+If the current model is Opus, run `/model sonnet` and wait for confirmation before proceeding. This skill is prompt-crafting plus a Munin write — Sonnet handles it fine, and the actual task runs on the Pi under its own runtime anyway.
+
 ## Usage
 
 - `/submit-task` - Interactive: ask what the task should do, then build the prompt together

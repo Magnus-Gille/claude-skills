@@ -13,6 +13,10 @@ The capture folder is at the mgc root: `~/mimir/mgc/capture/`
 
 ## Processing Flow
 
+### 0. Model Check
+
+If the current model is Opus, run `/model sonnet` and wait for confirmation before proceeding. This skill is mostly classification + Munin writes and runs fine on Sonnet.
+
 For each file in `capture/`:
 
 ### 1. Read & Classify
