@@ -49,7 +49,18 @@ Check if session work requires documentation updates:
 - Did we add/modify skills? → Update CLAUDE.md skills section
 - Did we change workflows? → Update relevant docs
 
-### 3. Skill Improvements
+### 3. Unsaved Plans & Artifacts
+
+Before reviewing skill improvements, check whether any significant work product from the session exists only in conversation context and hasn't been persisted to a file:
+
+- **Implementation plans** produced by the `/plan` skill or a `Plan` agent — save to a `plan.md` or `*-plan.md` file in an appropriate location (e.g., `debate/`, `docs/`, repo root).
+- **Research summaries** that aren't already written to `~/mimir/`.
+- **Decision write-ups** that aren't in Munin or a committed file.
+- **Debate documents** (if the `debate-codex` skill ran) — verify `debate/*-summary.md` and `debate/*-plan.md` were written; the raw files are gitignored but summaries and plans should persist.
+
+If anything is only in the conversation, write it to a file now. Ask the user where to save if the right location is unclear.
+
+### 4. Skill Improvements
 
 Review session for potential skill enhancements:
 - Did we repeat a pattern that could be automated?
