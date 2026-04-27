@@ -39,13 +39,13 @@ Before the first debate in a project, check if `debate/` is gitignored. If not, 
 
 **Correct syntax:**
 ```bash
-script -q /dev/null codex exec --full-auto -m gpt-5.4 -c model_reasoning_effort='"xhigh"' "<prompt>" 2>&1
+script -q /dev/null codex exec --full-auto -m gpt-5.5 -c model_reasoning_effort='"xhigh"' "<prompt>" 2>&1
 ```
 
 **Important rules:**
 - Wrap with `script -q /dev/null` to provide a pseudo-TTY (Codex auth fails without one when invoked from Claude Code)
 - Use `codex exec --full-auto` — NOT `codex -q` or other flags
-- **Always pin the strongest model and effort** for debates: `-m gpt-5.4 -c model_reasoning_effort='"xhigh"'`. Debates are high-stakes adversarial reviews — use the same "best model / Extra High" setting the app defaults to, not the global `config.toml` default (which is tuned for everyday use). The `'"xhigh"'` quoting is intentional: the outer single quotes protect from shell interpolation, the inner double quotes make the value a TOML string literal.
+- **Always pin the strongest model and effort** for debates: `-m gpt-5.5 -c model_reasoning_effort='"xhigh"'`. `gpt-5.5` is the current Codex-recommended frontier model; verify with `codex exec -m gpt-5.5 ...` before relying on it. If unavailable in the active account (e.g., API-key auth without ChatGPT sign-in), fall back to `-m gpt-5.4`. Debates are high-stakes adversarial reviews — use the strongest available model at "Extra High" effort, not the global `config.toml` default (which is tuned for everyday use). The `'"xhigh"'` quoting is intentional: the outer single quotes protect from shell interpolation, the inner double quotes make the value a TOML string literal.
 - Do NOT use the `-o` flag to capture critique content. The `-o` flag writes Codex's final conversational summary, not the file it created. Instead, instruct Codex to write its output file directly (it has workspace-write access via `--full-auto`).
 - Set `--timeout 300000` on the Bash tool call (Codex can take a few minutes; with `xhigh` effort it may run longer — consider `--timeout 600000`)
 - Codex works in the repo's working directory and can read all project files
@@ -165,7 +165,7 @@ Read the `## Debate Type` field from `debate/<topic>-claude-self-review.md` and 
 For **mixed-type debates**, include blocks for both primary and secondary types. Primary type block goes first.
 
 ```bash
-script -q /dev/null codex exec --full-auto -m gpt-5.4 -c model_reasoning_effort='"xhigh"' "You are acting as a grounded but adversarial reviewer.
+script -q /dev/null codex exec --full-auto -m gpt-5.5 -c model_reasoning_effort='"xhigh"' "You are acting as a grounded but adversarial reviewer.
 
 Read the file debate/<topic>-claude-draft.md. [Additional context files to read if needed.]
 
@@ -318,8 +318,8 @@ Append a cost table at the end:
 ## Costs
 | Invocation | Wall-clock time | Model version |
 |------------|-----------------|---------------|
-| Codex R1   | ~Nm             | gpt-5.3-codex |
-| Codex R2   | ~Nm             | gpt-5.3-codex |
+| Codex R1   | ~Nm             | gpt-5.5        |
+| Codex R2   | ~Nm             | gpt-5.5        |
 ```
 
 ### Step 10: Update debate index
