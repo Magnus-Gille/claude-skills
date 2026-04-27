@@ -19,7 +19,7 @@ If the current model is Opus, stop and ask the user to run `/model sonnet`, then
 
 **Behavior depends on the repo type:**
 
-#### mgc repo (`/Users/magnus/mimir/`)
+#### Snapshot-mode repos (e.g. a personal notes/working directory with no remote)
 Automatic snapshot — no ceremony, no staging review, no conventional messages:
 ```bash
 git add -A
@@ -54,7 +54,7 @@ Check if session work requires documentation updates:
 Before reviewing skill improvements, check whether any significant work product from the session exists only in conversation context and hasn't been persisted to a file:
 
 - **Implementation plans** produced by the `/plan` skill or a `Plan` agent — save to a `plan.md` or `*-plan.md` file in an appropriate location (e.g., `debate/`, `docs/`, repo root).
-- **Research summaries** that aren't already written to `~/mimir/`.
+- **Research summaries** that aren't already written to your notes/research directory.
 - **Decision write-ups** that aren't in Munin or a committed file.
 - **Debate documents** (if the `debate-codex` skill ran) — verify `debate/*-summary.md` and `debate/*-plan.md` were written; the raw files are gitignored but summaries and plans should persist.
 
@@ -71,9 +71,9 @@ Review session for potential skill enhancements:
 - Note them for the user
 - Offer to update the skill now
 
-### 4. MGC-Specific Checks
+### 4. Personal-Workspace Checks (optional)
 
-**Only run these when working in `/Users/magnus/mimir/`. Skip entirely for other repos.**
+**Only run these when working in a personal notes/working directory that has its own conventions for capture, tasks, and learnings. Skip entirely for normal source repos.**
 
 **Insights cadence:**
 ```bash
@@ -143,11 +143,11 @@ Claude Code is the bridge between local files and Munin. Desktop, Web, and Mobil
 
 ### 8. Skills Repo Sync
 
-If skills were created or modified this session, commit and push automatically:
+If skills were created or modified this session and `~/.claude/skills` is a git checkout with a remote, commit and push automatically:
 ```bash
 cd ~/.claude/skills && git add -A && git commit -m "update <skill-name>" && git push
 ```
-Repo: https://github.com/Magnus-Gille/claude-skills (private)
+Skip silently if `~/.claude/skills` has no remote configured.
 
 ### 9. Session Summary
 
@@ -199,7 +199,7 @@ All checks passed. Session can be closed.
 ## Quick Mode
 
 `/close quick` only checks:
-1. Git snapshot (mgc) or `/commit` workflow (other repos)
+1. Git snapshot (snapshot-mode repos) or `/commit` workflow (normal repos)
 2. Local state file update (always — this is the minimum for session continuity)
 3. Brief summary of session commits
 

@@ -22,9 +22,8 @@ git config user.name
 git config user.email
 ```
 
-- Expected: **Magnus Gille** / **magnus.gille@outlook.com**
-- If wrong, warn the user and ask before proceeding
-- Do NOT silently fix it — the user should decide
+- The user's expected `user.name` and `user.email` should be configured in their global `~/.gitconfig` or in the repo's `.git/config`. If `git config user.email` returns an unexpected value (e.g. a CI/bot email, or empty), warn the user before proceeding.
+- Do NOT silently fix it — the user should decide whether to update the config or commit under the current identity.
 
 ### Step 2: Review Changes
 
