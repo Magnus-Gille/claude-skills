@@ -1,5 +1,5 @@
 ---
-name: security-review
+name: magnus-security-review
 description: Comprehensive AI-powered security review of a codebase or repository. Builds a threat model, scans for vulnerabilities across OWASP Top 10 + LLM Top 10, validates findings, and proposes patches. Mirrors the workflow of Claude Code Security and Codex Security but using manual best practices.
 argument-hint: "[path or scope, e.g. 'src/' or 'auth module' or 'full repo']"
 ---
