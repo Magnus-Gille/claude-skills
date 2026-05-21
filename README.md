@@ -24,7 +24,7 @@ After install, restart Claude Code (or wait for the next session) and the skills
 |-------|--------------|
 | `/close` | Session closing checklist — git snapshot/commit, docs review, local state file update, optional Munin sync. |
 | `/commit` | Standardized git commit workflow: author verification, diff review, security check, conventional message, push. |
-| `/debate-codex` | Adversarial debate against OpenAI's Codex CLI to stress-test a draft, plan, or design before finalizing. Multi-round critique with self-review and summary. |
+| `/debate` | Adversarial debate against a cross-model reviewer (Codex or Antigravity/agy) to stress-test a draft, plan, or design before finalizing. Multi-round critique with self-review and summary. Backend chosen via `--model codex\|agy` (defaults to codex). |
 | `/eli5` | Re-explain the previous assistant turn in plain language — no jargon, no unexplained acronyms, short sentences. |
 | `/issues` | Check GitHub issues for the current repo: list, filter by label, view details, search. |
 | `/review-pr-codex` | Cross-model PR review — invokes Codex headless on the current branch diff, then reads findings and fixes or reports. |
@@ -35,7 +35,8 @@ After install, restart Claude Code (or wait for the next session) and the skills
 
 Some skills shell out to external CLIs or MCP servers:
 
-- **`debate-codex`, `review-pr-codex`** — require the [OpenAI Codex CLI](https://github.com/openai/codex) installed and authenticated.
+- **`debate`** — requires the [OpenAI Codex CLI](https://github.com/openai/codex) (for `--model codex`) and/or the Google Antigravity CLI `agy` (for `--model agy`), installed and authenticated.
+- **`review-pr-codex`** — requires the [OpenAI Codex CLI](https://github.com/openai/codex) installed and authenticated.
 - **`user-test-memory`** — requires the [Munin memory](https://github.com/Magnus-Gille/munin-memory) MCP server registered with Claude Code.
 - **`issues`** — requires the [GitHub CLI](https://cli.github.com/) (`gh`).
 - **`security-review`** — works standalone; suggested findings can be cross-checked with Codex CLI if available.

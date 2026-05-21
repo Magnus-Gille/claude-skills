@@ -58,7 +58,7 @@ Before reviewing skill improvements, check whether any significant work product 
 - **Implementation plans** produced by the `/plan` skill or a `Plan` agent — save to a `plan.md` or `*-plan.md` file in an appropriate location (e.g., `debate/`, `docs/`, repo root).
 - **Research summaries** that aren't already written to your notes/research directory.
 - **Decision write-ups** that aren't in Munin or a committed file.
-- **Debate documents** (if the `debate-codex` skill ran) — verify `debate/*-summary.md` and `debate/*-plan.md` were written; the raw files are gitignored but summaries and plans should persist.
+- **Debate documents** (if the `debate` skill ran) — verify `debate/*-summary.md` and `debate/*-plan.md` were written; the raw files are gitignored but summaries and plans should persist.
 
 If anything is only in the conversation, write it to a file now. Ask the user where to save if the right location is unclear.
 

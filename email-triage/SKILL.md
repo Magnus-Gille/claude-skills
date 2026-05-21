@@ -14,8 +14,10 @@ Naive triage judges a thread from one message's `bodyPreview`. That is wrong bec
 - **Mobile replies roll into quoted text.** A reply Magnus sent from his phone often does *not* appear as a separate `sentitems` row in the window — it lives inside the quoted body of a later message. Judging by inbox rows alone makes resolved threads look open.
 - **The last *inbound* message is not the same as an open obligation.** Martin/Saab, Koenigsegg, William — all were flagged "needs Magnus" when Magnus had already replied (or the ball was explicitly in the other party's court).
 - **`bodyPreview` truncates before the resolution.** "Thanks for this — will get back within 1–2 weeks" reads as a question in preview; the closure is past the cutoff.
+- **A draft is not proof of an unsent obligation.** Outlook leaves a lingering draft *twin* when you save-then-send, and old drafts from long-resolved threads persist forever. Because drafts are fetched with **no date filter**, a draft from months ago surfaces as "action owed" even though the offert was sent and the deal closed *outside* the window (Uddevalla: a March offert+acceptance was invisible to an April-onward window, so the March draft looked unsent). And a draft can carry a *newer* `lastModifiedDateTime` than a real sent reply in the same thread, making the sent reply look absent (Saab: an empty draft shadowed a substantive sent reply from the same morning).
+- **The date window clips conversations.** The window is a *discovery* filter for finding candidates, not the boundary of a conversation. A thread that looks open inside the window is frequently resolved by sent/received messages just outside it.
 
-**Rule: never emit a verdict on a thread without reconstructing the full conversation by `conversationId` across all folders and reading the actual body of its last message.**
+**Rule: never emit a verdict on a thread without reconstructing the full conversation by `conversationId` across all folders AND across all dates (re-fetch ignoring the window), and reading the actual body of its last *real* (non-draft, or reconciled) message.**
 
 ## Account
 
@@ -41,7 +43,7 @@ For a large window or many candidate threads, the subagent may itself fan out: o
 
 ### 2a. Fetch (all folders, full window)
 
-For each of `inbox`, `sentitems`, `drafts`, `junkemail`, `archive`, fetch messages in the window. Use `$select=subject,from,toRecipients,sender,receivedDateTime,sentDateTime,conversationId,isRead,isDraft,bodyPreview` and `$top=100`, `$orderby` on the relevant date desc. Date filter examples (keep `$` escaped as `\$` in the shell):
+For each of `inbox`, `sentitems`, `drafts`, `junkemail`, `archive`, fetch messages in the window. Use `$select=subject,from,toRecipients,sender,receivedDateTime,sentDateTime,lastModifiedDateTime,conversationId,isRead,isDraft,bodyPreview` and `$top=100`, `$orderby` on the relevant date desc. (`lastModifiedDateTime` is required to time-order drafts, which have no `sentDateTime`.) Date filter examples (keep `$` escaped as `\$` in the shell):
 
 ```
 inbox/sent/junk/archive:  \$filter=receivedDateTime ge <ISO> and receivedDateTime le <ISO>
@@ -53,18 +55,33 @@ Page through `@odata.nextLink` until exhausted (cap ~400 inbox rows). Write each
 
 Load all rows. Group every message — across all five folders — by `conversationId`. For each conversation compute:
 
-- `last_msg`: the message with the maximum timestamp (use `sentDateTime` for sent/drafts, `receivedDateTime` otherwise) across **all folders**.
-- `last_direction`: `inbound` if `last_msg` is in inbox/junk/archive and from someone other than Magnus; `outbound` if in sentitems; `draft` if in drafts.
+- `last_msg`: the message with the maximum timestamp across **all folders**. Use `sentDateTime` for sentitems, `receivedDateTime` for inbox/junk/archive, and **`lastModifiedDateTime` for drafts** (drafts have no `sentDateTime` — using it ranks every draft as epoch/null and breaks ordering, OR treats it as latest; both are wrong).
+- `last_real_msg`: same as `last_msg` but **excluding drafts** — the most recent actually-sent or actually-received message. This, not the draft, is what 2d judges.
+- `latest_sent`: among `sentitems` messages in this conversation, the max `sentDateTime`.
+- `last_direction`: `inbound` if `last_real_msg` is in inbox/junk/archive and from someone other than Magnus; `outbound` if in sentitems; (a draft never sets direction on its own — see draft reconciliation in 2c).
 - `has_unsent_draft`: any message for this conversationId in `drafts`.
 
 ### 2c. First-pass classification (preview only — provisional)
 
 - `outbound` last + no draft → **provisionally CLOSED** (Magnus replied last).
-- `draft` exists as the latest → **DRAFT-PENDING** (unsent reply sitting in drafts — surface this; it is high value).
 - `inbound` last → **CANDIDATE-OPEN** — must be verified in 2d before any verdict.
+- A `draft` exists in the conversation → **reconcile it first** (below). Only a genuinely-unsent draft becomes **DRAFT-PENDING**.
 - Pure newsletter/automated/no-reply sender (substack, *noreply*, *no-reply*, notification@, marketing domains) → **NOISE**, count only.
 
-A provisionally-CLOSED thread is NOT reported as open. But if its last outbound was Magnus *asking a question* and there is a later inbound answer you missed, the grouping in 2b already handles it (the inbound would be the last_msg). Trust the chronology, not the folder.
+**Draft reconciliation (do this before trusting any draft).** A draft is **DRAFT-PENDING** (genuinely unsent — surface it, high value) ONLY if *both* hold:
+  1. No `sentitems` message in the same conversation is newer than the draft's `lastModifiedDateTime` (`latest_sent` ≤ draft time). If a sent reply is newer, the draft is stale — ignore it; the thread was answered.
+  2. The draft is not a **twin** of an already-sent message — i.e. there is no `sentitems` message with the same/near-identical subject sent within ~30 min of the draft's creation. Save-then-send leaves this twin behind.
+If either fails, the draft is a **leftover** — discard it from the analysis and judge the conversation by `last_real_msg`. (Saab: empty draft, newer mtime, but a substantive sent reply existed the same morning → leftover. Uddevalla: a sent offert twin existed → leftover.)
+
+A provisionally-CLOSED thread is NOT reported as open. But if its last outbound was Magnus *asking a question* and there is a later inbound answer you missed, the grouping in 2b already handles it (the inbound would be `last_real_msg`). Trust the chronology, not the folder.
+
+### 2c-bis. Full-conversation reconstruction (MANDATORY for every candidate — ignores the window)
+
+The date window only *discovers* candidates; it does not bound conversations. For **every** conversation that is CANDIDATE-OPEN or DRAFT-PENDING, before emitting any verdict, re-fetch its ENTIRE history across all folders with **no date filter**:
+```
+m365 request --url "https://graph.microsoft.com/v1.0/me/messages?\$filter=conversationId eq '<id>'&\$select=subject,from,toRecipients,sentDateTime,receivedDateTime,lastModifiedDateTime,isDraft,parentFolderId,bodyPreview&\$top=100&\$orderby=receivedDateTime desc" -m get
+```
+Rebuild the true chronology from this full result, redo the draft reconciliation against it, and only then apply 2d. A thread that looks open inside the window is frequently resolved by sent/received messages just outside it. (Uddevalla: window was Apr 21+, but the offert was sent, accepted, and acknowledged Mar 23–30 — all invisible until the full conversation is pulled, leaving only the orphan March draft to mislead.)
 
 ### 2d. Mandatory full-body verification for every CANDIDATE-OPEN
 
@@ -125,6 +142,7 @@ End with a short **Time-sensitive** call-out listing only items with a real dead
 2. **Read the body before flagging.** No "needs reply" verdict from `bodyPreview` alone — ever.
 3. **Last-sender ≠ obligation.** Distinguish "inbound last" from "Magnus owes something". State who the ball is with.
 4. **Mobile-quoted replies are the #1 false positive.** Always inspect quoted text of the last inbound message for an already-sent answer.
-5. **Drafts are findings.** An unsent draft is more urgent than an unread inbound — always surface.
-6. **Sonnet subagent, raw JSON to /tmp.** Keep the main context clean; this is mechanical work.
-7. **Be honest about uncertainty.** If a thread genuinely can't be resolved from available data, say "UNCLEAR — needs human eyes", don't guess a verdict.
+5. **Drafts are findings — but reconcile before surfacing.** A genuinely unsent draft is high-value. A lingering *twin* of an already-sent message, or a draft on a thread that later resolved, is noise. Time-order drafts by `lastModifiedDateTime` (never `sentDateTime`), and check for a newer or twin sent message in the same conversation before calling a draft "unsent".
+6. **The window discovers candidates; it does not bound conversations.** For every candidate, re-fetch the full conversation by `conversationId` with no date filter before judging — the resolving messages often sit just outside the window.
+7. **Sonnet subagent, raw JSON to /tmp.** Keep the main context clean; this is mechanical work.
+8. **Be honest about uncertainty.** If a thread genuinely can't be resolved from available data, say "UNCLEAR — needs human eyes", don't guess a verdict.
