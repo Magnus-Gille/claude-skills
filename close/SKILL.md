@@ -43,11 +43,13 @@ Check if session work requires documentation updates:
 - [ ] CLAUDE.md - folder structure, workflows, MCP integrations, skills
 - [ ] Skill SKILL.md files - if skill behavior changed
 - [ ] README files - in relevant folders
+- [ ] **Living / generated artifacts** - if the project's CLAUDE.md defines maintained artifacts (e.g. a generated `site/` of HTML status pages, dashboards), follow its documented update contract and refresh them to reflect this session's work. Skip if this session changed no project state.
 
 **Questions to consider:**
 - Did we add new folders? → Update CLAUDE.md folder structure
 - Did we add/modify skills? → Update CLAUDE.md skills section
 - Did we change workflows? → Update relevant docs
+- Does CLAUDE.md define living artifacts (e.g. `site/`)? → Apply their documented update contract
 
 ### 3. Unsaved Plans & Artifacts
 
