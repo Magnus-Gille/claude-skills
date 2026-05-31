@@ -60,14 +60,14 @@ This is the **only** section that branches by backend. Steps 3 and 6 reference "
 
 **Correct syntax:**
 ```bash
-script -q /dev/null codex exec --full-auto -m gpt-5.5 -c model_reasoning_effort='"xhigh"' "<prompt>" 2>&1
+script -q /dev/null codex exec --sandbox workspace-write --skip-git-repo-check -m gpt-5.5 -c model_reasoning_effort='"xhigh"' "<prompt>" 2>&1
 ```
 
 **Important rules:**
 - Wrap with `script -q /dev/null` to provide a pseudo-TTY (Codex auth fails without one when invoked from Claude Code)
-- Use `codex exec --full-auto` — NOT `codex -q` or other flags
+- Use `codex exec --sandbox workspace-write` — NOT `codex -q`, and NOT the deprecated `--full-auto` (Codex 0.132+ warns and `--sandbox workspace-write` is the replacement). Add `--skip-git-repo-check` so it runs in non-git working dirs too (e.g. `~/mimir/mgc`); without it Codex refuses with "Not inside a trusted directory".
 - **Always pin the strongest model and effort** for debates: `-m gpt-5.5 -c model_reasoning_effort='"xhigh"'`. `gpt-5.5` is the current Codex-recommended frontier model; verify with `codex exec -m gpt-5.5 ...` before relying on it. If unavailable in the active account (e.g., API-key auth without ChatGPT sign-in), fall back to `-m gpt-5.4`. Debates are high-stakes adversarial reviews — use the strongest available model at "Extra High" effort, not the global `config.toml` default (which is tuned for everyday use). The `'"xhigh"'` quoting is intentional: the outer single quotes protect from shell interpolation, the inner double quotes make the value a TOML string literal.
-- Do NOT use the `-o` flag to capture critique content. The `-o` flag writes Codex's final conversational summary, not the file it created. Instead, instruct Codex to write its output file directly (it has workspace-write access via `--full-auto`).
+- Do NOT use the `-o` flag to capture critique content. The `-o` flag writes Codex's final conversational summary, not the file it created. Instead, instruct Codex to write its output file directly (it has workspace-write access via `--sandbox workspace-write`).
 - Set `--timeout 300000` on the Bash tool call (Codex can take a few minutes; with `xhigh` effort it may run longer — consider `--timeout 600000`)
 - Codex works in the repo's working directory and can read all project files
 
@@ -208,7 +208,7 @@ Read the `## Debate Type` field from `debate/<topic>-claude-self-review.md` and 
 
 For **mixed-type debates**, include blocks for both primary and secondary types. Primary type block goes first.
 
-The **prompt body** below is backend-independent. Wrap it in the command for the selected `<reviewer>` from the **Reviewer CLI Invocation** section (codex: `script -q /dev/null codex exec --full-auto -m gpt-5.5 ...`; agy: `agy --print --dangerously-skip-permissions ...`).
+The **prompt body** below is backend-independent. Wrap it in the command for the selected `<reviewer>` from the **Reviewer CLI Invocation** section (codex: `script -q /dev/null codex exec --sandbox workspace-write --skip-git-repo-check -m gpt-5.5 ...`; agy: `agy --print --dangerously-skip-permissions ...`).
 
 ```
 You are acting as a grounded but adversarial reviewer.
@@ -238,7 +238,7 @@ OUTPUT: Begin with a brief 'Context loaded' section listing which memory tools y
 ```
 
 **Output capture by backend:**
-- **codex** writes `debate/<topic>-codex-critique.md` directly (workspace-write via `--full-auto`). Verify in Step 4.
+- **codex** writes `debate/<topic>-codex-critique.md` directly (workspace-write via `--sandbox workspace-write`). Verify in Step 4.
 - **agy** prints the critique to stdout; *Claude* writes it to `debate/<topic>-agy-critique.md` from the captured Bash output. (agy on Flash is unreliable at file-writing — capturing stdout is the default, not a fallback.)
 
 **Namespace substitution:** Before running, replace `<namespace>` with the value inferred from `git remote get-url origin` per the **Munin Memory Access** section above. If no Munin namespace applies (new project, cross-cutting topic), remove the entire `LOAD PROJECT CONTEXT FROM MUNIN FIRST` paragraph and the memory mention in the `OUTPUT` line before invoking the reviewer.
