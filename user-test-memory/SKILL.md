@@ -1,19 +1,22 @@
 ---
 name: user-test-memory
-description: Spawn 3 independent AI agents (Opus, Sonnet, Haiku) to user-test the Munin memory system. Each explores with minimal pre-knowledge and returns structured feedback on what works, what's broken, and what's missing.
+description: Spawn independent AI agents across one or more ecosystems (Claude, Codex, Antigravity) to user-test the Munin memory system. Each explores with minimal pre-knowledge and returns structured feedback on what works, what's broken, and what's missing.
 argument-hint: [optional focus area, e.g. "retrieval quality" or "onboarding experience"]
 ---
 
 # /user-test-memory - Multi-Model Memory User Testing
 
-Spawn three independent subagents at different capability levels to stress-test the Munin memory MCP tools. Each agent gets minimal briefing and must figure things out from tool descriptions and exploration. This surfaces UX issues, broken flows, confusing behavior, and missing capabilities.
+Spawn independent subagents at different capability levels to stress-test the Munin memory MCP tools. Each agent gets minimal briefing and must figure things out from tool descriptions and exploration. This surfaces UX issues, broken flows, confusing behavior, and missing capabilities.
+
+**Default mode:** 3 Claude agents (Opus/Sonnet/Haiku). Extended mode adds Codex (via `codex exec`) and Antigravity (via `agy --print`) — see [Cross-Ecosystem Extension](#cross-ecosystem-extension) below.
 
 ## Usage
 
-- `/user-test-memory` - Full exploratory test across all tools
+- `/user-test-memory` - Full exploratory test across all tools (3 Claude agents)
 - `/user-test-memory retrieval` - Focus testing on search/query
 - `/user-test-memory onboarding` - Focus on first-time orientation experience
 - `/user-test-memory writing` - Focus on write/log/update flows
+- `/user-test-memory full` - 9-runner cross-ecosystem test (Claude + Codex + Antigravity)
 
 ## How It Works
 
@@ -137,6 +140,9 @@ Spawn three Agent tool calls in a SINGLE message (parallel execution):
 
 Each agent gets the same briefing with its own `{test_namespace}`.
 
+**Claude-specific note:** MCP tools are deferred — prepend the briefing with:
+> "First call ToolSearch with query `select:mcp__munin-memory__memory_orient,...` (list the key tools) to load their schemas, then proceed."
+
 Agent description format: `"Memory user test ({model})"`.
 
 ### Step 5: Collect and Synthesize Reports
@@ -200,12 +206,56 @@ memory_delete("testing/sonnet-{session_id}")
 memory_delete("testing/haiku-{session_id}")
 ```
 
+---
+
+## Cross-Ecosystem Extension
+
+For a richer signal, run the test across Claude + Codex (OpenAI) + Antigravity (Gemini) in a Workflow. This surfaces ecosystem-specific UX issues that a single-family run can't catch.
+
+### Runner families
+
+| Family | How | Constraint |
+|--------|-----|------------|
+| **Claude** opus/sonnet/haiku | Native subagents (Workflow `agent()`) | Full read+write |
+| **Codex** `gpt-5.5` ×3 | Wrapper agent shells out: `codex exec -m gpt-5.5 < /tmp/brief-<id>.txt` | Full read+write via munin bridge |
+| **Antigravity** `agy` ×3 | Wrapper agent shells out: `agy --print "$(cat /tmp/brief-<id>.txt)"` | **Read-only** — writes hit a permission prompt in headless mode; skip Phase 2 for agy runners |
+
+**Model note:** Only `gpt-5.5` is available under ChatGPT-account Codex auth (other slugs return 400). Probe first with `codex exec -m <slug> "Reply with only: PROBE_OK"` and check that the output is NOT echoed from the prompt.
+
+### Namespace rules (critical)
+
+**Namespace grammar:** `[a-zA-Z0-9][a-zA-Z0-9/_-]*` — **dots and spaces are invalid.** Runner IDs used in sandbox namespace names MUST be sanitised. Use `codex-a`, `codex-b`, `codex-c` — NOT `codex-gpt5.5-a` (the dot breaks the namespace and blocks the entire write phase with no warning).
+
+### Briefing variants
+
+- **Claude:** standard briefing (MCP tools natively available; prepend ToolSearch hint).
+- **Codex:** same briefing written to `/tmp/brief-<id>.txt`, piped to `codex exec`. Codex resolves as `principal: owner` via the munin bridge in `~/.codex/config.toml`.
+- **Antigravity (read-only):** modified briefing that instructs the runner to skip write tools (`memory_write`, `memory_log`, `memory_update_status`, `memory_delete`) and mark Writing grade as "N/A — could not test headlessly". `agy` resolves munin tools without a `mcp__`-prefix (uses generic `call_mcp_tool`).
+
+### De-risk before fan-out
+
+Before launching 9 parallel runners, verify each family can actually call munin:
+1. Claude: no de-risk needed (native).
+2. Codex: `codex exec -m gpt-5.5 "Call memory_status with no args and paste the result."` — confirm it returns JSON, not a sandbox/network error.
+3. agy: `agy --print "List the MCP tools available to you."` — confirm munin tools appear. Then `agy --print "Call memory_status (no args) and paste the raw result."` — confirm a live response.
+
+### Synthesis weighting
+
+When synthesising across families, weight **cross-family consensus** higher than within-family agreement. Two different ecosystems independently reporting the same issue is near-certain signal. One family reporting something the others didn't may still be worth filing, but note the limited confidence.
+
+### Cleanup
+
+After the run, delete all `testing/*` sandbox namespaces. Codex and agy runners connect as `principal: owner`, so their writes land in prod munin — clean up even if you think they failed.
+
+---
+
 ## Key Rules
 
 1. **Minimal briefing** — The whole point is testing discoverability. Don't teach the agents how to use the system.
 2. **Parallel launch** — All three agents MUST be launched in a single message for parallel execution.
-3. **Test namespaces** — All writes go to `testing/*` to avoid polluting production data.
+3. **Test namespaces** — All writes go to `testing/*` to avoid polluting production data. Sanitise runner IDs — no dots or spaces in namespace names.
 4. **Read access is fine** — Agents can and should read real data to evaluate the system.
 5. **No coaching** — If an agent gets stuck, that's a finding, not a problem to solve.
 6. **Specific feedback** — Vague feedback ("it was fine") is useless. The report format enforces specificity.
 7. **Cross-model comparison** — The synthesis matters more than individual reports. Consensus findings are high-confidence signals.
+8. **De-risk external runners first** — Verify Codex and agy can reach and call munin with a single-tool probe before running the full fan-out.
