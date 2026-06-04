@@ -37,7 +37,10 @@ If empty, tell the user there's nothing to review.
 
 ### Step 2: Generate the diff context
 
+Clean up any stale temp files from a prior run first — Codex runs in a shared environment and a leftover result file from a previous project will pollute the review:
+
 ```bash
+rm -f /tmp/codex-pr-review-diff.txt /tmp/codex-pr-review-commits.txt /tmp/codex-pr-review-result.md
 git diff main...HEAD > /tmp/codex-pr-review-diff.txt
 git log --oneline main..HEAD > /tmp/codex-pr-review-commits.txt
 ```
@@ -46,18 +49,23 @@ Check the diff size. If over 5000 lines, warn the user that the review may be ex
 
 ### Step 3: Invoke Codex
 
+Before invoking Codex, compose a one-paragraph **PR context description** from your knowledge of the diff: what it does, why it was written, what the key risk or design decision is. Weave it into the prompt below where `<PR_CONTEXT>` appears — this is what makes Codex's review sharp instead of generic. A security guard PR gets security scrutiny; a refactor gets coupling scrutiny; a data-migration gets idempotency scrutiny.
+
 ```bash
 script -q /dev/null codex exec --sandbox workspace-write --skip-git-repo-check -m gpt-5.5 -c model_reasoning_effort='"xhigh"' "You are a senior code reviewer performing a thorough review of a pull request.
 
+<PR_CONTEXT>
+
 Read the diff at /tmp/codex-pr-review-diff.txt and the commit log at /tmp/codex-pr-review-commits.txt.
-Also read any source files referenced in the diff to understand the full context.
+Also read any source files referenced in the diff to understand the full context — including test files that cover the changed code.
 
 Review the changes for:
 1. **Bugs and regressions** — logic errors, broken edge cases, state that was correct before but isn't now
 2. **Security issues** — injection, auth bypasses, secrets exposure, unsafe input handling
-3. **API contract mismatches** — does the code match what the docs/README claim?
+3. **API contract mismatches** — does the code match what the docs/README/CHANGELOG claim?
 4. **Missing error handling** — unhappy paths that silently fail or crash
-5. **Doc/config drift** — version numbers, setup instructions, or config files that contradict the code changes
+5. **Test coverage gaps** — changed behaviour that has no test, or tests that assert the wrong thing
+6. **Doc/config drift** — version numbers, setup instructions, or config files that contradict the code changes
 
 For each finding, include:
 - **Severity:** critical / medium / low
@@ -73,7 +81,7 @@ Write your complete review to /tmp/codex-pr-review-result.md in markdown format.
 **Important:**
 - Use `--sandbox workspace-write` (not `-q` or `-o`, and NOT the deprecated `--full-auto` — Codex 0.132+ warns and `--sandbox workspace-write` is the replacement). Add `--skip-git-repo-check` so it also runs in non-git working dirs (without it Codex refuses with "Not inside a trusted directory").
 - **Pin the strongest model and effort:** `-m gpt-5.5 -c model_reasoning_effort='"xhigh"'`. Cross-model PR reviews are high-stakes — use the "best model / Extra High" setting, not the everyday config default. (`gpt-5.5` is the current Codex frontier model; if it's unavailable in the active account, fall back to `-m gpt-5.4`.)
-- Set Bash tool `--timeout 300000` (Codex can take a few minutes; `xhigh` effort may push closer to the limit — consider `--timeout 600000`)
+- Set Bash tool `--timeout 600000` — `xhigh` effort can push close to the limit.
 - Codex writes its output to a file; do NOT rely on `-o` for review content
 
 ### Step 4: Read and verify the review
