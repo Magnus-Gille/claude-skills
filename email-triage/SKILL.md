@@ -24,9 +24,15 @@ Naive triage judges a thread from one message's `bodyPreview`. That is wrong bec
 
 ## Account
 
-- Account: `magnus.gille@outlook.com`
+Pick the mailbox from the request (ask if ambiguous; default Outlook):
+
+**Outlook `magnus.gille@outlook.com` (default)** — the full methodology in Steps 0–2 below targets this account.
 - Tool: the **`m365` CLI**, raw Graph API form: `m365 request --url "<url>" -m get`. Do NOT use Microsoft MCP tools (removed).
 - Folders: `inbox`, `sentitems`, `drafts`, `junkemail`, `archive` (Magnus archives processed mail — include it).
+
+**iCloud `magnus@gille.ai`** — triage via the `himalaya` CLI. See **the gille.ai section** at the end; the Graph-specific mechanics (conversationId grouping, OData `$filter`/`$search`, draft-twin reconciliation) do NOT transfer, but the *judgment principles* do.
+
+If the user says "both"/"all my email", run both passes and label each section by account.
 
 ## Step 0: Auth
 
@@ -170,3 +176,18 @@ End with a short **Time-sensitive** call-out listing only items with a real dead
 9. **Reconcile by counterparty, not just by conversationId.** A reply or deliverable sent as a new-subject thread has a different conversationId. Before flagging any thread open, `$search` sent items for that person/domain — an answer sent under another subject still closes the obligation.
 10. **Every "Action owed" carries a verbatim quote; no invented work.** If you can't quote the inbound sentence that asks for it, it isn't owed. Prophylactic nudges nobody requested do not belong in the report.
 11. **Date arithmetic, never date vibes.** Today's date is injected at the top of the subagent prompt. Show the day-delta for every deadline claim; never write "overdue"/"passed"/"yesterday" without it.
+
+## gille.ai triage (iCloud via himalaya)
+
+For the `magnus@gille.ai` mailbox the **principles are identical** — reconstruct the whole thread, read the actual body before any verdict, reconcile against what Magnus sent the counterparty (even under a new subject), quote the inbound ask, no invented obligations, date arithmetic not vibes. What changes is the mechanics:
+
+- **No `conversationId` and no OData.** IMAP threads by `References`/`In-Reply-To` headers. himalaya groups loosely by subject in the list; reconstruct a thread by reading messages and matching subject + participants + `References`, not by an ID field.
+- **Tooling.** Still route through a Sonnet subagent. Inject today's date. Commands (append `2>/dev/null`):
+  - List a folder: `himalaya envelope list -a gille -f INBOX 2>/dev/null` (folders: `INBOX`, `"Sent Messages"`, `Drafts`, `Archive`, `Junk`, `"Deleted Messages"`).
+  - Filter (query is positional, no `--`): `himalaya envelope list -a gille -f INBOX not flag seen 2>/dev/null`, or `from <x>`, `subject <x>`, `after <yyyy-mm-dd>`, `before <yyyy-mm-dd>`, combined with `and`/`or`/`not`, plus `order by date desc`.
+  - Read full body: `himalaya message read -a gille <ID> 2>/dev/null`.
+  - For machine parsing, add `--output json` and parse with `python3`/`jq` in the subagent.
+- **By-counterparty reconciliation** = list `"Sent Messages"` and search for that person/domain (`-- from`/`-- subject`, or fetch JSON and filter recipients in python) — a deliverable sent as a new thread still closes the obligation.
+- **Drafts:** check the `Drafts` folder; a draft is only "unsent" if no later sent message to the same counterparty exists. Same leftover/twin logic, judged by reading rather than by `lastModifiedDateTime`.
+- **Volume is low** (~tens of messages, not hundreds), so a single subagent pass over INBOX + Sent + Drafts + Junk is enough — no `@odata.nextLink` paging, no `/tmp` JSON sharding required unless a folder is unexpectedly large.
+- **Output:** same Step 3 structure and Step 4 next-actions; offer `/draft-email` (it knows the gille.ai send path) for anything owed.
