@@ -20,6 +20,8 @@ Run an adversarial code review of the current branch using the Codex CLI (a diff
 
 ## Workflow
 
+> **Run the verbose work in a subagent (recommended).** Steps 2–4 generate a large diff and a long Codex execution log that you don't need verbatim — only the structured findings. Delegate Steps 1–4 to a subagent (e.g. an `Agent`/`Task` with `model: "sonnet"`) that runs the Codex invocation and **returns only the findings** (severity, file:line, issue, suggested fix), then you act on them in Steps 5–6 in the root session. This keeps the diff and raw Codex log out of root context — which matters when the review is one step in a longer session, and is essential for multi-round review loops (review → fix → re-review), where accumulated logs would otherwise force premature compaction. Give the subagent the exact commands and `< /dev/null` / timeout caveats below verbatim, and tell it explicitly what to return. When reviewing a PR branch held in a worktree, point the subagent at that worktree dir. (For a quick one-off review in a short session, running inline is fine.)
+
 ### Step 1: Determine what to review
 
 **If a PR number is given:**
@@ -122,3 +124,4 @@ rm -f /tmp/codex-pr-review-diff.txt /tmp/codex-pr-review-commits.txt /tmp/codex-
 3. **Run tests after fixing** — never push fixes without verifying they work
 4. **Don't argue with valid findings** — if Codex is right, concede and fix it
 5. **Do push back on invalid findings** — explain why to the user so they can judge
+6. **Protect root context** — delegate the verbose Steps 2–4 to a subagent that returns only the structured findings; never let a full diff + raw Codex log accumulate in the root session, especially across review→fix→re-review rounds
