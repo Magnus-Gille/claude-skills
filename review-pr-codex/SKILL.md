@@ -15,12 +15,12 @@ Run an adversarial code review of the current branch using the Codex CLI (a diff
 
 ## Prerequisites
 
-- `codex` CLI installed and `OPENAI_API_KEY` set
+- `codex` CLI installed and **authenticated** — *either* via ChatGPT sign-in (`codex login`, the common case on a personal machine) *or* via an `OPENAI_API_KEY` env var. **Do not gate on `OPENAI_API_KEY` alone** — ChatGPT-authenticated Codex works with no API key set, and bailing on a missing key is a false negative (it stores auth in `~/.codex/auth.json`). Verify with `codex login status` (prints `Logged in ...`); only treat Codex as unavailable if that fails *and* no `OPENAI_API_KEY` is set.
 - A branch with commits diverged from main (or a PR number)
 
 ## Workflow
 
-> **Run the verbose work in a subagent (recommended).** Steps 2–4 generate a large diff and a long Codex execution log that you don't need verbatim — only the structured findings. Delegate Steps 1–4 to a subagent (e.g. an `Agent`/`Task` with `model: "sonnet"`) that runs the Codex invocation and **returns only the findings** (severity, file:line, issue, suggested fix), then you act on them in Steps 5–6 in the root session. This keeps the diff and raw Codex log out of root context — which matters when the review is one step in a longer session, and is essential for multi-round review loops (review → fix → re-review), where accumulated logs would otherwise force premature compaction. Give the subagent the exact commands and `< /dev/null` / timeout caveats below verbatim, and tell it explicitly what to return. When reviewing a PR branch held in a worktree, point the subagent at that worktree dir. (For a quick one-off review in a short session, running inline is fine.)
+> **Run the verbose work in a subagent (recommended).** Steps 2–4 generate a large diff and a long Codex execution log that you don't need verbatim — only the structured findings. Delegate Steps 1–4 to a subagent (e.g. an `Agent`/`Task` with `model: "sonnet"`) that runs the Codex invocation and **returns only the findings** (severity, file:line, issue, suggested fix), then you act on them in Steps 5–6 in the root session. This keeps the diff and raw Codex log out of root context — which matters when the review is one step in a longer session, and is essential for multi-round review loops (review → fix → re-review), where accumulated logs would otherwise force premature compaction. Give the subagent the exact commands and `< /dev/null` / timeout caveats below verbatim, and tell it explicitly what to return. **In the subagent prompt, state the auth rule from Prerequisites explicitly** — verify Codex with `codex login status`, and do NOT abort just because `OPENAI_API_KEY` is unset (ChatGPT-authenticated Codex is the normal case and needs no key). When reviewing a PR branch held in a worktree, point the subagent at that worktree dir. (For a quick one-off review in a short session, running inline is fine.)
 
 ### Step 1: Determine what to review
 
