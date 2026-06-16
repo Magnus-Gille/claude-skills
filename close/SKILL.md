@@ -11,10 +11,6 @@ Run before ending a session to ensure everything is properly wrapped up.
 
 When `/close` is invoked, work through each section:
 
-### 0. Model Check
-
-If the current model is Opus, stop and ask the user to run `/model sonnet`, then wait for them to confirm the switch before proceeding. The remainder of this skill (git, Munin writes, docs) runs fine on Sonnet, and memory-heavy workloads shouldn't burn Opus quota.
-
 ### 1. Git Snapshot
 
 **Behavior depends on the repo type:**
