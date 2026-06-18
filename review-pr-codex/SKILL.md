@@ -15,8 +15,18 @@ Run an adversarial code review of the current branch using the Codex CLI (a diff
 
 ## Prerequisites
 
-- `codex` CLI installed and **authenticated** — *either* via ChatGPT sign-in (`codex login`, the common case on a personal machine) *or* via an `OPENAI_API_KEY` env var. **Do not gate on `OPENAI_API_KEY` alone** — ChatGPT-authenticated Codex works with no API key set, and bailing on a missing key is a false negative (it stores auth in `~/.codex/auth.json`). Verify with `codex login status` (prints `Logged in ...`); only treat Codex as unavailable if that fails *and* no `OPENAI_API_KEY` is set.
+- `codex` CLI installed and **authenticated** — *either* via ChatGPT sign-in (`codex login`, the common case on a personal machine) *or* via an `OPENAI_API_KEY` env var. **Do not gate on `OPENAI_API_KEY` alone** — ChatGPT-authenticated Codex works with no API key set, and bailing on a missing key is a false negative (it stores auth in `~/.codex/auth.json`). Verify with `codex login status` (prints `Logged in ...`); only treat Codex as unavailable if that fails *and* no `OPENAI_API_KEY` is set. **A passing `codex login status` does NOT guarantee Codex will run** — a ChatGPT/workspace plan can be out of quota, so `codex exec` may still fail at run time with `ERROR: Your workspace is out of credits. Add credits to continue.` Confirm availability at *exec* time, not just auth time; on genuine unavailability, use the **adversarial self-review fallback** (below).
 - A branch with commits diverged from main (or a PR number)
+
+## When Codex is unavailable — adversarial self-review fallback
+
+Codex can fail in a way `codex login status` does **not** catch: auth succeeds ("Logged in using ChatGPT") but `codex exec` returns `ERROR: Your workspace is out of credits` (quota/credit exhaustion), or a transient API error. The review subagent comes back empty or with that error. **When Codex is genuinely unavailable and topping up isn't an option, do NOT silently skip the review** — fall back to an **adversarial self-review** as the substitute gate:
+
+1. **Multi-lens review.** Spawn several skeptical reviewer agents in parallel (a small `Workflow` with one agent per lens works well), each with a *distinct* lens — e.g. for a code PR: billing/correctness, concurrency & error-paths, privacy/security, test-adequacy; for a web/docs PR: docs-vs-reality, web-security/secret-leak, clarity. Each reads the diff read-only (`git diff main...HEAD`, `git show <branch>:<file>`) and returns structured findings (severity / file:line / issue / fix). Tell each agent to be adversarial — *assume there is a bug and hunt for the worst one* — but to substantiate every finding from the code.
+2. **Refute-pass (this is what makes a self-review trustworthy).** For each critical/high finding, spawn a skeptic that tries to *refute* it from the actual code; default `confirmed=false` unless demonstrable (many review findings are false positives — the guard exists elsewhere, the path is unreachable, a test already covers it). Only confirmed findings block the merge. Without this step a self-review churns on noise.
+3. **Fix the confirmed findings test-first, then merge** on a clean refute-pass — the same bar as Codex (no surviving critical/medium). Findings that are real but bigger/orthogonal → file as GitHub issues and fast-follow rather than bloat the PR.
+
+**Label it honestly — it is NOT the cross-model check this skill exists for.** The whole value of Codex is a *different model family* catching Claude's blind spots, which Claude-reviewing-itself cannot fully replace. So: tell the user it was a self-review (not Codex), note it in the PR/commit, and **flag those PRs for a real Codex pass when credits/availability return.** This fallback is strictly better than (a) skipping review, or (b) blocking the whole pipeline on a credit top-up the user has declined — but it is a substitute, not an equal.
 
 ## Workflow
 
