@@ -68,15 +68,18 @@ Check the diff size. If over 5000 lines, warn the user that the review may be ex
 `codex login status` passing does **not** mean `codex exec` will run — a ChatGPT/workspace plan can be out of credits, and that only surfaces *after* a full `xhigh` round is consumed (observed 3× across May–June 2026). Run a near-free read-only probe first; it costs a trivial call instead of a 15–22 min review round:
 
 ```bash
-codex exec --sandbox read-only --skip-git-repo-check -m gpt-5.5 "Reply with exactly: PROBE_OK" < /dev/null 2>&1 | tee /tmp/codex-pr-review-probe.txt
-PROBE_RC=${PIPESTATUS[0]}
+# Capture the exit code directly (no pipe) — `${PIPESTATUS[0]}` is bash-only and is
+# empty under zsh, the macOS default shell, which would silently lose the rc check.
+codex exec --sandbox read-only --skip-git-repo-check -m gpt-5.5 "Reply with exactly: PROBE_OK" < /dev/null > /tmp/codex-pr-review-probe.txt 2>&1
+PROBE_RC=$?
+cat /tmp/codex-pr-review-probe.txt
 ```
 
 Evaluate the probe:
 - Output contains `out of credits` / `workspace is out of credits` → **Codex is unavailable.** Do NOT run Step 3 (it would silently burn a round and fail). Go straight to the **adversarial self-review fallback** and tell the user Codex is out of credits.
-- Output contains `400` / `model is not supported` → wrong model id for this auth type. Retry the probe with `-m gpt-5.4`; if it still fails, see the Prerequisites model-id table and fall back.
+- Output contains `400` / `model is not supported` → wrong model id for this auth type. Retry the probe with `-m gpt-5.4`. **If the gpt-5.4 probe passes, use `-m gpt-5.4` in Step 3 as well** (Step 3 otherwise hardcodes gpt-5.5 and would hit the same 400). If gpt-5.4 also fails, see the Prerequisites model-id table and fall back.
 - `PROBE_RC != 0` or no `PROBE_OK` in the output → treat Codex as unavailable; fall back.
-- Probe prints `PROBE_OK` → proceed to Step 3 with confidence the account can execute.
+- Probe prints `PROBE_OK` → proceed to Step 3 with confidence the account can execute (using whichever model id passed the probe).
 
 Then `rm -f /tmp/codex-pr-review-probe.txt`.
 
@@ -123,7 +126,7 @@ Write your complete review to /tmp/codex-pr-review-result.md in markdown format.
 
 ### Step 4: Read and verify the review
 
-First scan the raw Bash output for an **out-of-credits / hard error** signature — `out of credits`, `workspace is out of credits`, `429`, `quota`. If present, Codex consumed the round and produced nothing usable: **do NOT try to salvage an empty log.** Go directly to the **adversarial self-review fallback** (or a non-Anthropic provider — see below) and label the review honestly. (Step 2b should have caught this earlier; this is the backstop for an account that runs dry mid-review.)
+First scan the raw Bash output for an **out-of-credits / hard error** signature. Primary triggers (act immediately): `out of credits`, `workspace is out of credits`. Secondary (only treat as failure if there's also no findings file / no synthesized findings — these strings can appear in benign usage/attribution lines): `429`, `quota`. If a primary trigger is present, Codex consumed the round and produced nothing usable: **do NOT try to salvage an empty log.** Go directly to the **adversarial self-review fallback** (or a non-Anthropic provider — see below) and label the review honestly. (Step 2b should have caught this earlier; this is the backstop for an account that runs dry mid-review.)
 
 Otherwise read `/tmp/codex-pr-review-result.md` and check for failure modes:
 
@@ -132,7 +135,7 @@ Otherwise read `/tmp/codex-pr-review-result.md` and check for failure modes:
 - **File looks complete:** Proceed to Step 5.
 
 **Auto-fallback target (Fix 3).** When the above branches to a fallback, prefer in this order so the **cross-model property is preserved** where possible:
-1. A **non-Anthropic** reviewer that's available — e.g. Gemini / `agy` (Antigravity) via the `debate` skill — so a different model family still reviews the diff.
+1. A **non-Anthropic** reviewer that's available — e.g. Gemini / `agy` (Antigravity) via the `debate` skill — so a different model family still reviews the diff. (If agy is unavailable — stale OAuth, not installed — don't burn time fixing it; skip to option 2.)
 2. Otherwise the **adversarial multi-lens self-review Workflow** documented above (worked reliably and found real bugs on hugin #68). Label it as a self-review, not the cross-model check, and flag the PR for a real Codex pass when credits return.
 
 ### Step 5: Present findings and act
