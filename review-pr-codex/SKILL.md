@@ -18,6 +18,10 @@ Run an adversarial code review of the current branch using the Codex CLI (a diff
 - `codex` CLI installed and **authenticated** — *either* via ChatGPT sign-in (`codex login`, the common case on a personal machine) *or* via an `OPENAI_API_KEY` env var. **Do not gate on `OPENAI_API_KEY` alone** — ChatGPT-authenticated Codex works with no API key set, and bailing on a missing key is a false negative (it stores auth in `~/.codex/auth.json`). Verify with `codex login status` (prints `Logged in ...`); only treat Codex as unavailable if that fails *and* no `OPENAI_API_KEY` is set. **A passing `codex login status` does NOT guarantee Codex will run** — a ChatGPT/workspace plan can be out of quota, so `codex exec` may still fail at run time with `ERROR: Your workspace is out of credits. Add credits to continue.` Confirm availability at *exec* time, not just auth time; on genuine unavailability, use the **adversarial self-review fallback** (below).
 - A branch with commits diverged from main (or a PR number)
 
+**Known-working model ids by auth type (Fix for the `400 invalid_request_error` failure mode):**
+- **ChatGPT-account auth** (the common personal-machine case): use `gpt-5.5` (frontier) or `gpt-5.4` (fallback). **Do NOT use `-m gpt-5-codex`** — under ChatGPT-account auth it is rejected with `400 invalid_request_error: 'gpt-5-codex' model is not supported when using Codex with a ChatGPT account`, and the default model then tends to hang (seen 2026-05-31). The `*-codex` model ids are an API-key-auth surface only.
+- **`OPENAI_API_KEY` auth:** `gpt-5.5` works; the `*-codex` ids are also available here.
+
 ## When Codex is unavailable — adversarial self-review fallback
 
 Codex can fail in a way `codex login status` does **not** catch: auth succeeds ("Logged in using ChatGPT") but `codex exec` returns `ERROR: Your workspace is out of credits` (quota/credit exhaustion), or a transient API error. The review subagent comes back empty or with that error. **When Codex is genuinely unavailable and topping up isn't an option, do NOT silently skip the review** — fall back to an **adversarial self-review** as the substitute gate:
@@ -59,6 +63,26 @@ git log --oneline main..HEAD > /tmp/codex-pr-review-commits.txt
 
 Check the diff size. If over 5000 lines, warn the user that the review may be expensive and ask to proceed.
 
+### Step 2b: Pre-flight credit/availability probe (do this BEFORE the expensive review)
+
+`codex login status` passing does **not** mean `codex exec` will run — a ChatGPT/workspace plan can be out of credits, and that only surfaces *after* a full `xhigh` round is consumed (observed 3× across May–June 2026). Run a near-free read-only probe first; it costs a trivial call instead of a 15–22 min review round:
+
+```bash
+# Capture the exit code directly (no pipe) — `${PIPESTATUS[0]}` is bash-only and is
+# empty under zsh, the macOS default shell, which would silently lose the rc check.
+codex exec --sandbox read-only --skip-git-repo-check -m gpt-5.5 "Reply with exactly: PROBE_OK" < /dev/null > /tmp/codex-pr-review-probe.txt 2>&1
+PROBE_RC=$?
+cat /tmp/codex-pr-review-probe.txt
+```
+
+Evaluate the probe:
+- Output contains `out of credits` / `workspace is out of credits` → **Codex is unavailable.** Do NOT run Step 3 (it would silently burn a round and fail). Go straight to the **adversarial self-review fallback** and tell the user Codex is out of credits.
+- Output contains `400` / `model is not supported` → wrong model id for this auth type. Retry the probe with `-m gpt-5.4`. **If the gpt-5.4 probe passes, use `-m gpt-5.4` in Step 3 as well** (Step 3 otherwise hardcodes gpt-5.5 and would hit the same 400). If gpt-5.4 also fails, see the Prerequisites model-id table and fall back.
+- `PROBE_RC != 0` or no `PROBE_OK` in the output → treat Codex as unavailable; fall back.
+- Probe prints `PROBE_OK` → proceed to Step 3 with confidence the account can execute (using whichever model id passed the probe).
+
+Then `rm -f /tmp/codex-pr-review-probe.txt`.
+
 ### Step 3: Invoke Codex
 
 Before invoking Codex, compose a one-paragraph **PR context description** from your knowledge of the diff: what it does, why it was written, what the key risk or design decision is. Weave it into the prompt below where `<PR_CONTEXT>` appears — this is what makes Codex's review sharp instead of generic. A security guard PR gets security scrutiny; a refactor gets coupling scrutiny; a data-migration gets idempotency scrutiny.
@@ -68,8 +92,10 @@ codex exec --sandbox workspace-write --skip-git-repo-check -m gpt-5.5 -c model_r
 
 <PR_CONTEXT>
 
-Read the diff at /tmp/codex-pr-review-diff.txt and the commit log at /tmp/codex-pr-review-commits.txt.
-Also read any source files referenced in the diff to understand the full context — including test files that cover the changed code.
+FIRST, before any exploration, create /tmp/codex-pr-review-result.md containing a single line: '# Codex review (in progress)'. This guarantees a result file exists even if you run long. As you complete the review, OVERWRITE that file with your full findings. Do NOT defer the first write until the end.
+
+Then read the diff at /tmp/codex-pr-review-diff.txt and the commit log at /tmp/codex-pr-review-commits.txt.
+Also read any source files referenced in the diff to understand the full context — including test files that cover the changed code. Keep exploration proportional to the diff size — for a small diff, read only the changed files plus their direct tests; do not wander the whole repo.
 
 Review the changes for:
 1. **Bugs and regressions** — logic errors, broken edge cases, state that was correct before but isn't now
@@ -95,15 +121,22 @@ Write your complete review to /tmp/codex-pr-review-result.md in markdown format.
 - Use `--sandbox workspace-write` (not `-q` or `-o`, and NOT the deprecated `--full-auto` — Codex 0.132+ warns and `--sandbox workspace-write` is the replacement). Add `--skip-git-repo-check` so it also runs in non-git working dirs (without it Codex refuses with "Not inside a trusted directory").
 - **Pin the strongest model and effort:** `-m gpt-5.5 -c model_reasoning_effort='"xhigh"'`. Cross-model PR reviews are high-stakes — use the "best model / Extra High" setting, not the everyday config default. (`gpt-5.5` is the current Codex frontier model; if it's unavailable in the active account, fall back to `-m gpt-5.4`.)
 - Set Bash tool `--timeout 600000` — `xhigh` effort can push close to the limit.
+- **No turn-budget flag exists.** `codex exec` (as of CLI 0.142.x) has no `--max-turns`/turn-cap option, so the only guards against the "runs 15–22 min, exits 0, writes nothing" hang (mode B, seen 2026-05-31 & 2026-06-23) are: (a) the **write-first** instruction in the prompt above (a placeholder result file is created before any exploration, so a hang still leaves a detectable artifact), (b) the **`< /dev/null`** stdin redirect, and (c) the Bash `--timeout`. If mode B recurs on a small diff, retry once with `-c model_reasoning_effort='"high"'` (less likely to wander) before falling back.
 - Codex writes its output to a file; do NOT rely on `-o` for review content
 
 ### Step 4: Read and verify the review
 
-Read `/tmp/codex-pr-review-result.md`. Check for failure modes:
+First scan the raw Bash output for an **out-of-credits / hard error** signature. Primary triggers (act immediately): `out of credits`, `workspace is out of credits`. Secondary (only treat as failure if there's also no findings file / no synthesized findings — these strings can appear in benign usage/attribution lines): `429`, `quota`. If a primary trigger is present, Codex consumed the round and produced nothing usable: **do NOT try to salvage an empty log.** Go directly to the **adversarial self-review fallback** (or a non-Anthropic provider — see below) and label the review honestly. (Step 2b should have caught this earlier; this is the backstop for an account that runs dry mid-review.)
 
-- **File missing:** Codex didn't write it. Extract review content from the Bash tool output (the Codex execution log) and proceed with that.
-- **File is a brief summary (< 300 chars):** Codex wrote a conversational summary instead of the real review. Same recovery — pull content from the execution log.
-- **File looks complete:** Proceed.
+Otherwise read `/tmp/codex-pr-review-result.md` and check for failure modes:
+
+- **File contains only the `# Codex review (in progress)` placeholder (or is missing):** mode B — Codex hung/exited without finishing. Check the Bash log for partial findings; if the log is also empty (just repo grepping/reading, no synthesized findings), treat this as a **failed Codex run** and branch to the fallback. Do not pass off an empty log as "clean."
+- **File is a brief conversational summary (< 300 chars):** Codex wrote chatter instead of the review. Pull findings from the execution log if present; if absent, fall back.
+- **File looks complete:** Proceed to Step 5.
+
+**Auto-fallback target (Fix 3).** When the above branches to a fallback, prefer in this order so the **cross-model property is preserved** where possible:
+1. A **non-Anthropic** reviewer that's available — e.g. Gemini / `agy` (Antigravity) via the `debate` skill — so a different model family still reviews the diff. (If agy is unavailable — stale OAuth, not installed — don't burn time fixing it; skip to option 2.)
+2. Otherwise the **adversarial multi-lens self-review Workflow** documented above (worked reliably and found real bugs on hugin #68). Label it as a self-review, not the cross-model check, and flag the PR for a real Codex pass when credits return.
 
 ### Step 5: Present findings and act
 
