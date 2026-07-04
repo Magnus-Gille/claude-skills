@@ -27,6 +27,15 @@ mid-flight spend-limit outage via `--continue` resume.
 - `scripts/continue-ticket.sh <worktree_dir> <model> <log_file>` — resumes an interrupted
   session in its worktree via `claude -p --continue` (conversation context + partial edits
   survive).
+- `scripts/run-ticket-m5.sh` / `scripts/continue-ticket-m5.sh` — **M5-enabled variants**
+  (proven 2026-07-04, 4/4 tickets): add `mcp__m5__ask`/`mcp__m5__list_models` to the allowlist
+  plus optional per-ticket extra tools as trailing args (e.g. `"Bash(curl:*)"` for live-seam
+  tickets). Use these when sessions should offload bounded sub-tasks to the M5 box; include an
+  M5-offload paragraph in the prompt's EXTRA section requiring the session to VERIFY every M5
+  output before use, and add an `M5:` line to the FINAL REPORT format. **Reliability data so
+  far (2026-07-04):** qwen3-coder review legs were clean and correct on 3 TypeScript diffs but
+  confabulated 5-of-6 findings on a shell/docs diff — trust the M5 review leg on TS, treat its
+  shell/docs findings as hypotheses to verify, and always verify its codegen with tests.
 - `templates/ticket-prompt.md` — the per-ticket prompt. Fill `{ISSUE}`, `{TITLE}`,
   `{EXTRA_TASK_SPECIFIC_GUIDANCE}` (2–6 sentences: concrete scope, files, constraints,
   known traps). The EXTRA section is where quality is won — be specific per ticket.
