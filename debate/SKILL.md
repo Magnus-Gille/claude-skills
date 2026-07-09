@@ -60,15 +60,15 @@ This is the **only** section that branches by backend. Steps 3 and 6 reference "
 
 **Correct syntax:**
 ```bash
-script -q /dev/null codex exec --sandbox workspace-write --skip-git-repo-check -m gpt-5.5 -c model_reasoning_effort='"xhigh"' "<prompt>" 2>&1
+script -q /dev/null codex exec --sandbox workspace-write --skip-git-repo-check -m gpt-5.6-sol -c model_reasoning_effort='"high"' "<prompt>" 2>&1
 ```
 
 **Important rules:**
 - Wrap with `script -q /dev/null` to provide a pseudo-TTY (Codex auth fails without one when invoked from Claude Code)
 - Use `codex exec --sandbox workspace-write` — NOT `codex -q`, and NOT the deprecated `--full-auto` (Codex 0.132+ warns and `--sandbox workspace-write` is the replacement). Add `--skip-git-repo-check` so it runs in non-git working dirs too (e.g. `~/mimir/mgc`); without it Codex refuses with "Not inside a trusted directory".
-- **Always pin the strongest model and effort** for debates: `-m gpt-5.5 -c model_reasoning_effort='"xhigh"'`. `gpt-5.5` is the current Codex-recommended frontier model; verify with `codex exec -m gpt-5.5 ...` before relying on it. If unavailable in the active account (e.g., API-key auth without ChatGPT sign-in), fall back to `-m gpt-5.4`. Debates are high-stakes adversarial reviews — use the strongest available model at "Extra High" effort, not the global `config.toml` default (which is tuned for everyday use). The `'"xhigh"'` quoting is intentional: the outer single quotes protect from shell interpolation, the inner double quotes make the value a TOML string literal.
+- **Always pin the strongest model and effort** for debates: `-m gpt-5.6-sol -c model_reasoning_effort='"high"'`. `gpt-5.6-sol` is the current Codex-recommended frontier model; verify with `codex exec -m gpt-5.6-sol ...` before relying on it. If unavailable in the active account (e.g., API-key auth without ChatGPT sign-in), fall back to `-m gpt-5.5`, then `-m gpt-5.4`. Debates are high-stakes adversarial reviews — use the strongest available model at "High" effort, not the global `config.toml` default (which is tuned for everyday use). The `'"high"'` quoting is intentional: the outer single quotes protect from shell interpolation, the inner double quotes make the value a TOML string literal.
 - Do NOT use the `-o` flag to capture critique content. The `-o` flag writes Codex's final conversational summary, not the file it created. Instead, instruct Codex to write its output file directly (it has workspace-write access via `--sandbox workspace-write`).
-- Set `--timeout 300000` on the Bash tool call (Codex can take a few minutes; with `xhigh` effort it may run longer — consider `--timeout 600000`)
+- Set `--timeout 300000` on the Bash tool call (Codex can take a few minutes; with `high` effort it may run longer — consider `--timeout 600000`)
 - Codex works in the repo's working directory and can read all project files
 
 ### Backend: `agy` (Antigravity / Gemini)
@@ -208,7 +208,7 @@ Read the `## Debate Type` field from `debate/<topic>-claude-self-review.md` and 
 
 For **mixed-type debates**, include blocks for both primary and secondary types. Primary type block goes first.
 
-The **prompt body** below is backend-independent. Wrap it in the command for the selected `<reviewer>` from the **Reviewer CLI Invocation** section (codex: `script -q /dev/null codex exec --sandbox workspace-write --skip-git-repo-check -m gpt-5.5 ...`; agy: `agy --print --dangerously-skip-permissions ...`).
+The **prompt body** below is backend-independent. Wrap it in the command for the selected `<reviewer>` from the **Reviewer CLI Invocation** section (codex: `script -q /dev/null codex exec --sandbox workspace-write --skip-git-repo-check -m gpt-5.6-sol ...`; agy: `agy --print --dangerously-skip-permissions ...`).
 
 ```
 You are acting as a grounded but adversarial reviewer.
@@ -357,7 +357,7 @@ Apply these replacements to all `debate/<topic>-*` files created in this debate.
 ### Step 9: Write the summary
 
 Create `debate/<topic>-summary.md` with:
-- Date, participants (note the **reviewer backend and model**, e.g. "Reviewer: codex / gpt-5.5" or "Reviewer: agy / Gemini 3.x Pro"), and round count
+- Date, participants (note the **reviewer backend and model**, e.g. "Reviewer: codex / gpt-5.6-sol" or "Reviewer: agy / Gemini 3.x Pro"), and round count
 - Concessions accepted by both sides
 - Defenses accepted by the reviewer
 - Unresolved disagreements
@@ -373,8 +373,8 @@ Append a cost table at the end. The `Model` column records the actual reviewer m
 ## Costs
 | Invocation        | Wall-clock time | Model              |
 |-------------------|-----------------|--------------------|
-| <reviewer> R1     | ~Nm             | gpt-5.5 / Gemini … |
-| <reviewer> R2     | ~Nm             | gpt-5.5 / Gemini … |
+| <reviewer> R1     | ~Nm             | gpt-5.6-sol / Gemini … |
+| <reviewer> R2     | ~Nm             | gpt-5.6-sol / Gemini … |
 ```
 
 ### Step 10: Update debate index

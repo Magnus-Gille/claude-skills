@@ -19,8 +19,8 @@ Run an adversarial code review of the current branch using the Codex CLI (a diff
 - A branch with commits diverged from main (or a PR number)
 
 **Known-working model ids by auth type (Fix for the `400 invalid_request_error` failure mode):**
-- **ChatGPT-account auth** (the common personal-machine case): use `gpt-5.5` (frontier) or `gpt-5.4` (fallback). **Do NOT use `-m gpt-5-codex`** — under ChatGPT-account auth it is rejected with `400 invalid_request_error: 'gpt-5-codex' model is not supported when using Codex with a ChatGPT account`, and the default model then tends to hang (seen 2026-05-31). The `*-codex` model ids are an API-key-auth surface only.
-- **`OPENAI_API_KEY` auth:** `gpt-5.5` works; the `*-codex` ids are also available here.
+- **ChatGPT-account auth** (the common personal-machine case): use `gpt-5.6-sol` (frontier), falling back to `gpt-5.5`, then `gpt-5.4`. **Do NOT use `-m gpt-5-codex`** — under ChatGPT-account auth it is rejected with `400 invalid_request_error: 'gpt-5-codex' model is not supported when using Codex with a ChatGPT account`, and the default model then tends to hang (seen 2026-05-31). The `*-codex` model ids are an API-key-auth surface only.
+- **`OPENAI_API_KEY` auth:** `gpt-5.6-sol` works; the `*-codex` ids are also available here.
 
 ## When Codex is unavailable — adversarial self-review fallback
 
@@ -65,19 +65,19 @@ Check the diff size. If over 5000 lines, warn the user that the review may be ex
 
 ### Step 2b: Pre-flight credit/availability probe (do this BEFORE the expensive review)
 
-`codex login status` passing does **not** mean `codex exec` will run — a ChatGPT/workspace plan can be out of credits, and that only surfaces *after* a full `xhigh` round is consumed (observed 3× across May–June 2026). Run a near-free read-only probe first; it costs a trivial call instead of a 15–22 min review round:
+`codex login status` passing does **not** mean `codex exec` will run — a ChatGPT/workspace plan can be out of credits, and that only surfaces *after* a full `high` effort round is consumed (observed 3× across May–June 2026). Run a near-free read-only probe first; it costs a trivial call instead of a 15–22 min review round:
 
 ```bash
 # Capture the exit code directly (no pipe) — `${PIPESTATUS[0]}` is bash-only and is
 # empty under zsh, the macOS default shell, which would silently lose the rc check.
-codex exec --sandbox read-only --skip-git-repo-check -m gpt-5.5 "Reply with exactly: PROBE_OK" < /dev/null > /tmp/codex-pr-review-probe.txt 2>&1
+codex exec --sandbox read-only --skip-git-repo-check -m gpt-5.6-sol "Reply with exactly: PROBE_OK" < /dev/null > /tmp/codex-pr-review-probe.txt 2>&1
 PROBE_RC=$?
 cat /tmp/codex-pr-review-probe.txt
 ```
 
 Evaluate the probe:
 - Output contains `out of credits` / `workspace is out of credits` → **Codex is unavailable.** Do NOT run Step 3 (it would silently burn a round and fail). Go straight to the **adversarial self-review fallback** and tell the user Codex is out of credits.
-- Output contains `400` / `model is not supported` → wrong model id for this auth type. Retry the probe with `-m gpt-5.4`. **If the gpt-5.4 probe passes, use `-m gpt-5.4` in Step 3 as well** (Step 3 otherwise hardcodes gpt-5.5 and would hit the same 400). If gpt-5.4 also fails, see the Prerequisites model-id table and fall back.
+- Output contains `400` / `model is not supported` → wrong model id for this auth type. Retry the probe with `-m gpt-5.5`, then `-m gpt-5.4`. **If a fallback probe passes, use that same model id in Step 3 as well** (Step 3 otherwise hardcodes gpt-5.6-sol and would hit the same 400). If both fallbacks also fail, see the Prerequisites model-id table and fall back.
 - `PROBE_RC != 0` or no `PROBE_OK` in the output → treat Codex as unavailable; fall back.
 - Probe prints `PROBE_OK` → proceed to Step 3 with confidence the account can execute (using whichever model id passed the probe).
 
@@ -88,7 +88,7 @@ Then `rm -f /tmp/codex-pr-review-probe.txt`.
 Before invoking Codex, compose a one-paragraph **PR context description** from your knowledge of the diff: what it does, why it was written, what the key risk or design decision is. Weave it into the prompt below where `<PR_CONTEXT>` appears — this is what makes Codex's review sharp instead of generic. A security guard PR gets security scrutiny; a refactor gets coupling scrutiny; a data-migration gets idempotency scrutiny.
 
 ```bash
-codex exec --sandbox workspace-write --skip-git-repo-check -m gpt-5.5 -c model_reasoning_effort='"xhigh"' "You are a senior code reviewer performing a thorough review of a pull request.
+codex exec --sandbox workspace-write --skip-git-repo-check -m gpt-5.6-sol -c model_reasoning_effort='"high"' "You are a senior code reviewer performing a thorough review of a pull request.
 
 <PR_CONTEXT>
 
@@ -119,9 +119,9 @@ Write your complete review to /tmp/codex-pr-review-result.md in markdown format.
 **Important:**
 - **Always redirect stdin from `/dev/null`** (`… < /dev/null 2>&1`). `codex exec` reads stdin even when the prompt is passed as an argument, so in a non-TTY shell (Claude Code's Bash tool, background tasks, CI) it otherwise blocks forever on `Reading additional input from stdin...`. Do **not** wrap the call in `script -q /dev/null` to fake a TTY — `script` fails in socket-backed shells with `tcgetattr/ioctl: Operation not supported on socket`, leaving you with a silent hang. `< /dev/null` is the portable fix and works in both TTY and non-TTY contexts.
 - Use `--sandbox workspace-write` (not `-q` or `-o`, and NOT the deprecated `--full-auto` — Codex 0.132+ warns and `--sandbox workspace-write` is the replacement). Add `--skip-git-repo-check` so it also runs in non-git working dirs (without it Codex refuses with "Not inside a trusted directory").
-- **Pin the strongest model and effort:** `-m gpt-5.5 -c model_reasoning_effort='"xhigh"'`. Cross-model PR reviews are high-stakes — use the "best model / Extra High" setting, not the everyday config default. (`gpt-5.5` is the current Codex frontier model; if it's unavailable in the active account, fall back to `-m gpt-5.4`.)
-- Set Bash tool `--timeout 600000` — `xhigh` effort can push close to the limit.
-- **No turn-budget flag exists.** `codex exec` (as of CLI 0.142.x) has no `--max-turns`/turn-cap option, so the only guards against the "runs 15–22 min, exits 0, writes nothing" hang (mode B, seen 2026-05-31 & 2026-06-23) are: (a) the **write-first** instruction in the prompt above (a placeholder result file is created before any exploration, so a hang still leaves a detectable artifact), (b) the **`< /dev/null`** stdin redirect, and (c) the Bash `--timeout`. If mode B recurs on a small diff, retry once with `-c model_reasoning_effort='"high"'` (less likely to wander) before falling back.
+- **Pin the strongest model and effort:** `-m gpt-5.6-sol -c model_reasoning_effort='"high"'`. Cross-model PR reviews are high-stakes — use the "best model / High" setting, not the everyday config default. (`gpt-5.6-sol` is the current Codex frontier model; if it's unavailable in the active account, fall back to `-m gpt-5.5`, then `-m gpt-5.4`.)
+- Set Bash tool `--timeout 600000` — `high` effort can push close to the limit.
+- **No turn-budget flag exists.** `codex exec` (as of CLI 0.142.x) has no `--max-turns`/turn-cap option, so the only guards against the "runs 15–22 min, exits 0, writes nothing" hang (mode B, seen 2026-05-31 & 2026-06-23) are: (a) the **write-first** instruction in the prompt above (a placeholder result file is created before any exploration, so a hang still leaves a detectable artifact), (b) the **`< /dev/null`** stdin redirect, and (c) the Bash `--timeout`. If mode B recurs on a small diff, retry once with `-c model_reasoning_effort='"medium"'` (less likely to wander) before falling back.
 - Codex writes its output to a file; do NOT rely on `-o` for review content
 
 ### Step 4: Read and verify the review
