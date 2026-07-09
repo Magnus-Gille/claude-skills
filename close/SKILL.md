@@ -28,9 +28,23 @@ git commit -m "snapshot $(date +%Y-%m-%d)"
 - Multiple snapshots per day get the same date — that's fine
 
 #### All other repos
-- If uncommitted changes exist → **run the `/commit` workflow** (author verify, security check, conventional message). Do not duplicate commit logic here.
+Run the full audit before deciding what to commit or clean up:
+```bash
+git status
+git branch
+git log --oneline -5
+git worktree list
+git branch --verbose --no-abbrev
+git branch --format='%(refname:short) %(upstream:track) %(objectname:short) %(subject)'
+git status --ignored --short STATUS.md PROGRESS.md TODO.md docs/PROGRESS.md docs/PLAN.md docs/ROADMAP.md 2>/dev/null
+# For each non-primary worktree from `git worktree list`:
+git -C <worktree-path> status --short --branch
+```
+- If uncommitted tracked changes exist → **run the `/commit` workflow** (author verify, security check, conventional message). Do not duplicate commit logic here.
+- If only expected local-only/untracked files exist, document them as intentionally left; do not run `/commit` just to commit scratch/config.
 - After committing, **push automatically** (`git push`). If no upstream is set, use `git push -u origin <branch>`.
 - If feature branches exist, ask user: merge now or leave for later?
+- If stale branches/worktrees exist, document them. Delete only clean worktrees/branches and only when cleanup was explicitly requested.
 - If clean, move on.
 
 ### 2. Documentation Review
@@ -45,6 +59,7 @@ Check if session work requires documentation updates:
 - Did we add new folders? → Update CLAUDE.md folder structure
 - Did we add/modify skills? → Update CLAUDE.md skills section
 - Did we change workflows? → Update relevant docs
+- Did deployment copy local-only files, require manual cleanup, or change rsync/exclude behavior? → Document the operational fix or verified cleanup location.
 - Does CLAUDE.md define living artifacts (e.g. `site/`)? → Apply their documented update contract
 
 ### 3. Unsaved Plans & Artifacts
@@ -69,7 +84,7 @@ Review session for potential skill enhancements:
 - Note them for the user
 - Offer to update the skill now
 
-### 4. Personal-Workspace Checks (optional)
+### 5. Personal-Workspace Checks (optional)
 
 **Only run these when working in a personal notes/working directory that has its own conventions for capture, tasks, and learnings. Skip entirely for normal source repos.**
 
@@ -88,14 +103,22 @@ ls capture/ 2>/dev/null
 - Any new tasks from this session? → Add to Munin via `memory_write("tasks", "<category>", ...)`. Tasks live in Munin `tasks/` namespace (commitments, projects, admin, events) — NOT in local TASKS.md files.
 - Session learnings worth capturing? → Add to `learning/`
 
-### 5. Cleanup
+### 6. Cleanup
 
 Check for:
 - [ ] Temporary files to delete
 - [ ] Test files that shouldn't be committed
-- [ ] Stale branches that can be deleted
+- [ ] Stale branches that can be deleted or documented
+- [ ] Stale PR worktrees that can be removed or documented
+- [ ] Dirty secondary worktrees that must be left untouched and called out
 
-### 6. Session Handoff (Local State File)
+Stale PR cleanup guidance:
+- For squash-merged PRs, use GitHub PR state as the source of truth; the local branch may not be merged by Git ancestry.
+- Before deleting any worktree, run `git -C <worktree-path> status --short --branch`.
+- Do not delete dirty worktrees. Document exact path and changed files under pending notes.
+- If GitHub API/network is unavailable, document that PR-state verification was skipped rather than guessing.
+
+### 7. Session Handoff (Local State File)
 
 Update the project's local state file with resumption context. This is the primary handoff mechanism — the next session reads this file first.
 
@@ -125,7 +148,14 @@ Update the project's local state file with resumption context. This is the prima
 - [Prioritized list of what to do next]
 ```
 
-### 7. Munin Memory Update
+Also include when relevant:
+- Deployment status (for example: deployed to Pi/prod, not yet committed)
+- Deploy verification (health check, deployed commit, and local-only artifact cleanup if relevant)
+- Ignored/local-only handoff files (for example `STATUS.md`) using `git status --ignored` when normal `git status` hides them
+- Pending stale branches/worktrees that were intentionally left alone
+- Where any presentation, incident, or postmortem notes were stored
+
+### 8. Munin Memory Update
 
 Claude Code is the bridge between local files and Munin. Desktop, Web, and Mobile sessions can only see Munin, so Code sessions must keep it current.
 
@@ -139,7 +169,7 @@ Claude Code is the bridge between local files and Munin. Desktop, Web, and Mobil
    - **Current work:** What's actively being worked on (1-2 sentences)
    - **Blockers:** Anything preventing progress (or "None")
 
-### 8. Skills Repo Sync
+### 9. Skills Repo Sync
 
 If skills were created or modified this session and `~/.claude/skills` is a git checkout with a remote, commit and push automatically:
 ```bash
@@ -147,7 +177,7 @@ cd ~/.claude/skills && git add -A && git commit -m "update <skill-name>" && git 
 ```
 Skip silently if `~/.claude/skills` has no remote configured.
 
-### 9. Session Summary
+### 10. Session Summary
 
 Provide brief summary to the user:
 ```
@@ -174,6 +204,9 @@ Provide brief summary to the user:
 
 ### Git
 ✓ Snapshot taken (or: committed via /commit workflow)
+✓ On expected branch and remote status checked
+!! Local-only untracked files documented
+!! Dirty secondary worktree '<path>' left untouched - changed files listed
 
 ### Documentation
 ✓ CLAUDE.md up to date
@@ -198,7 +231,8 @@ All checks passed. Session can be closed.
 
 `/close quick` only checks:
 1. Git snapshot (snapshot-mode repos) or `/commit` workflow (normal repos)
-2. Local state file update (always — this is the minimum for session continuity)
-3. Brief summary of session commits
+2. Dirty secondary worktree warning (`git worktree list` plus `git -C <path> status --short --branch`)
+3. Local state file update (always — this is the minimum for session continuity)
+4. Brief summary of session commits
 
 Skip documentation review, skill improvements, Munin updates, and detailed cleanup.
