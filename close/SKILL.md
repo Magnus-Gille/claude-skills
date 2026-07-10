@@ -1,3 +1,8 @@
+---
+name: close
+description: Session closing checklist for Git state, documentation, handoff files, and Munin memory. Use when the user invokes /close or asks to wrap up a session, including work that touched multiple repositories.
+---
+
 # /close - Session Closing Checklist
 
 Run before ending a session to ensure everything is properly wrapped up.
@@ -28,7 +33,31 @@ git commit -m "snapshot $(date +%Y-%m-%d)"
 - Multiple snapshots per day get the same date — that's fine
 
 #### All other repos
-Run the full audit before deciding what to commit or clean up:
+Determine the audit scope before deciding what to commit or clean up:
+
+- Always include the current repository.
+- If the session touched other repositories (edits, commits, PRs, deploy sources, local state files,
+  or production verification), include every affected Git root. Derive this bounded set from the
+  session's workdirs, commands, PRs, and deploy paths; do not sweep every repo under `$HOME`.
+- Resolve each candidate with `git -C <path> rev-parse --show-toplevel` and deduplicate roots.
+- Audit each affected repo and all of its worktrees. A clean current repo does not prove the
+  multi-repo session is clean.
+
+Before classifying ahead/behind state, `[gone]` upstreams, or stale PR branches, refresh the relevant
+remote in each affected repo:
+
+```bash
+git remote
+git fetch --prune <tracking-remote>  # usually origin
+```
+
+Treat fetch as non-destructive to the remote and working tree, but remember that it updates local
+remote-tracking refs and `FETCH_HEAD`. If the repo has no remote, network/auth is unavailable, or the
+session is restricted to strictly read-only local operations, continue the local audit and state that
+remote/PR disposition could not be freshly verified; prefer forge PR metadata or `git ls-remote` for
+fresh non-local verification, and do not guess from stale remote-tracking refs.
+
+Then run the full audit in each affected repo:
 ```bash
 git status
 git branch
@@ -45,6 +74,8 @@ git -C <worktree-path> status --short --branch
 - After committing, **push automatically** (`git push`). If no upstream is set, use `git push -u origin <branch>`.
 - If feature branches exist, ask user: merge now or leave for later?
 - If stale branches/worktrees exist, document them. Delete only clean worktrees/branches and only when cleanup was explicitly requested.
+- Group the final Git findings by repository, including clean repos, so cross-repo deployment and
+  handoff state is explicit.
 - If clean, move on.
 
 ### 2. Documentation Review
@@ -122,6 +153,10 @@ Stale PR cleanup guidance:
 
 Update the project's local state file with resumption context. This is the primary handoff mechanism — the next session reads this file first.
 
+Apply this per affected repository whose execution state changed substantively. Do not create or
+rewrite a handoff merely because a repo was inspected read-only. A coordinating/system repo may carry
+the consolidated cross-repo summary, but it does not replace a changed owning repo's local handoff.
+
 **Detect the project's convention:**
 - If `docs/PROGRESS.md` exists → update that (e.g., focusapp)
 - If `TODO.md` exists and is used for status tracking → update that (e.g., tieto-competition)
@@ -161,6 +196,9 @@ Claude Code is the bridge between local files and Munin. Desktop, Web, and Mobil
 
 **Update when:** Code was committed or a decision was made this session.
 **Skip when:** Pure Q&A, exploration, read-only sessions, or memory already updated during session.
+
+For a multi-repo session, update each affected tracked project whose current state changed; do not
+rewrite unrelated project statuses merely because they were included in the Git audit.
 
 **Write protocol:**
 1. **Log decisions** — `memory_log` any decisions made this session with rationale. Append-only logs survive overwrites.
@@ -203,8 +241,10 @@ Provide brief summary to the user:
 ## Pre-Close Checklist
 
 ### Git
+✓ Affected repositories audited: <repo list>
+✓ Remote refs refreshed (or freshness limitation documented) per affected repo
 ✓ Snapshot taken (or: committed via /commit workflow)
-✓ On expected branch and remote status checked
+✓ Expected branches and remote status checked per repo
 !! Local-only untracked files documented
 !! Dirty secondary worktree '<path>' left untouched - changed files listed
 
@@ -230,6 +270,9 @@ All checks passed. Session can be closed.
 ## Quick Mode
 
 `/close quick` only checks:
+
+Use the same bounded affected-repository set and refresh each tracking remote before classifying status.
+
 1. Git snapshot (snapshot-mode repos) or `/commit` workflow (normal repos)
 2. Dirty secondary worktree warning (`git worktree list` plus `git -C <path> status --short --branch`)
 3. Local state file update (always — this is the minimum for session continuity)
