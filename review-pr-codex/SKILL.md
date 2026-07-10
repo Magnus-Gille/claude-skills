@@ -80,7 +80,7 @@ cat /tmp/codex-pr-review-probe.txt
 ```
 
 Evaluate the probe:
-- Output contains `out of credits` / `workspace is out of credits` → **Codex is unavailable.** Do NOT run Step 3 (it would silently burn a round and fail). Go straight to the **adversarial self-review fallback** and tell the user Codex is out of credits.
+- Output contains `out of credits` / `workspace is out of credits` / `You've hit your usage limit` (personal-plan wording, observed 2026-07-10 — often includes a retry time like "try again at 4:44 PM"; relay that time to the user so a retro pass can be scheduled) → **Codex is unavailable.** Do NOT run Step 3 (it would silently burn a round and fail). Go straight to the **adversarial self-review fallback** and tell the user Codex is out of credits.
 - Output contains `400` / `model is not supported` → wrong model id for this auth type. Retry the probe with `-m gpt-5.5`, then `-m gpt-5.4`. **If a fallback probe passes, use that same model id in Step 3 as well** (Step 3 otherwise hardcodes gpt-5.6-sol and would hit the same 400). If both fallbacks also fail, see the Prerequisites model-id table and fall back.
 - `PROBE_RC != 0` or no `PROBE_OK` in the output → treat Codex as unavailable; fall back.
 - Probe prints `PROBE_OK` → proceed to Step 3 with confidence the account can execute (using whichever model id passed the probe).
@@ -130,7 +130,7 @@ Write your complete review to /tmp/codex-pr-review-result.md in markdown format.
 
 ### Step 4: Read and verify the review
 
-First scan the raw Bash output for an **out-of-credits / hard error** signature. Primary triggers (act immediately): `out of credits`, `workspace is out of credits`. Secondary (only treat as failure if there's also no findings file / no synthesized findings — these strings can appear in benign usage/attribution lines): `429`, `quota`. If a primary trigger is present, Codex consumed the round and produced nothing usable: **do NOT try to salvage an empty log.** Go directly to the **adversarial self-review fallback** (or a non-Anthropic provider — see below) and label the review honestly. (Step 2b should have caught this earlier; this is the backstop for an account that runs dry mid-review.)
+First scan the raw Bash output for an **out-of-credits / hard error** signature. Primary triggers (act immediately): `out of credits`, `workspace is out of credits`, `usage limit`. Secondary (only treat as failure if there's also no findings file / no synthesized findings — these strings can appear in benign usage/attribution lines): `429`, `quota`. If a primary trigger is present, Codex consumed the round and produced nothing usable: **do NOT try to salvage an empty log.** Go directly to the **adversarial self-review fallback** (or a non-Anthropic provider — see below) and label the review honestly. (Step 2b should have caught this earlier; this is the backstop for an account that runs dry mid-review.)
 
 Otherwise read `/tmp/codex-pr-review-result.md` and check for failure modes:
 
@@ -140,6 +140,10 @@ Otherwise read `/tmp/codex-pr-review-result.md` and check for failure modes:
 
 **Auto-fallback target (Fix 3).** When the above branches to a fallback, prefer in this order so the **cross-model property is preserved** where possible:
 1. A **non-Anthropic** reviewer that's available — e.g. Gemini / `agy` (Antigravity) via the `debate` skill — so a different model family still reviews the diff. (If agy is unavailable — stale OAuth, not installed — don't burn time fixing it; skip to option 2.)
+   **agy caveats (hard-won 2026-07-10, when agy successfully substituted for an out-of-credits Codex):**
+   - Flag ORDER matters: `agy --print-timeout 9m --print "<prompt>"` — putting `--print-timeout` AFTER `--print` silently mis-parses and answers a question about the flag instead of running the review. Probe with a trivial `--print "Reply with exactly: PROBE_OK"` first.
+   - **agy runs agentically even in `--print` mode**: given a prompt with an inlined diff, it may still explore the filesystem, read the REAL repo instead of a pointed-at worktree, run the project's test suite, write Munin memory entries, and save its report as a brain artifact instead of printing it. Treat it as a side-effectful reviewer: say explicitly in the prompt what it must not touch, and check `git status` + recent Munin log entries afterwards.
+   - Quality data point (same code, same day): agy found 3 real issues; a retro Codex pass then found 7 more, including a flaw in agy's own suggested fix. When Codex quota resets, ALWAYS run the flagged retro pass — it is not ceremony.
 2. Otherwise the **adversarial multi-lens self-review Workflow** documented above (worked reliably and found real bugs on hugin #68). Label it as a self-review, not the cross-model check, and flag the PR for a real Codex pass when credits return.
 
 ### Step 5: Present findings and act
