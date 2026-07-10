@@ -60,11 +60,12 @@ This is the **only** section that branches by backend. Steps 3 and 6 reference "
 
 **Correct syntax:**
 ```bash
-script -q /dev/null codex exec --sandbox workspace-write --skip-git-repo-check -m gpt-5.6-sol -c model_reasoning_effort='"high"' "<prompt>" 2>&1
+script -q /dev/null codex exec --sandbox workspace-write --skip-git-repo-check -m gpt-5.6-sol -c features.code_mode_host=false -c model_reasoning_effort='"high"' "<prompt>" 2>&1
 ```
 
 **Important rules:**
 - Wrap with `script -q /dev/null` to provide a pseudo-TTY (Codex auth fails without one when invoked from Claude Code)
+- **`-c features.code_mode_host=false` is required on Codex 0.144.x** (observed 2026-07-10): the Homebrew cask ships without the `codex-code-mode-host` binary, so with the feature on (the default) EVERY tool call fails with `failed to spawn code-mode host … No such file or directory` — the model runs but can read no files and write no critique. The flag reverts to classic tool routing. If a future cask ships the host binary (check `ls /opt/homebrew/bin/codex-code-mode-host`), the flag can be dropped.
 - Use `codex exec --sandbox workspace-write` — NOT `codex -q`, and NOT the deprecated `--full-auto` (Codex 0.132+ warns and `--sandbox workspace-write` is the replacement). Add `--skip-git-repo-check` so it runs in non-git working dirs too (e.g. `~/mimir/mgc`); without it Codex refuses with "Not inside a trusted directory".
 - **Always pin the strongest model and effort** for debates: `-m gpt-5.6-sol -c model_reasoning_effort='"high"'`. `gpt-5.6-sol` is the current Codex-recommended frontier model; verify with `codex exec -m gpt-5.6-sol ...` before relying on it. If unavailable in the active account (e.g., API-key auth without ChatGPT sign-in), fall back to `-m gpt-5.5`, then `-m gpt-5.4`. Debates are high-stakes adversarial reviews — use the strongest available model at "High" effort, not the global `config.toml` default (which is tuned for everyday use). The `'"high"'` quoting is intentional: the outer single quotes protect from shell interpolation, the inner double quotes make the value a TOML string literal.
 - Do NOT use the `-o` flag to capture critique content. The `-o` flag writes Codex's final conversational summary, not the file it created. Instead, instruct Codex to write its output file directly (it has workspace-write access via `--sandbox workspace-write`).
