@@ -43,6 +43,14 @@ Some skills shell out to external CLIs or MCP servers:
 
 The remaining skills (`close`, `commit`, `eli5`) only need standard `git` and Claude Code itself.
 
+## Codex companion skill
+
+`debate-claude/` mirrors the `/debate` protocol for Codex: Codex drafts and responds while Claude Fable reviews at high effort, with Claude Opus at high effort as the automatic fallback. Install it for Codex by symlinking the repository folder:
+
+```bash
+ln -s /path/to/claude-skills/debate-claude ~/.codex/skills/debate-claude
+```
+
 ## Personal vs public
 
 A separate private repo holds skills that are tightly coupled to my own infrastructure (mail, calendar, accounting, deployment scripts, the Munin/Hugin/Mimir Pi stack). Those aren't useful without that environment, so they live elsewhere. If something looks like it belongs in the public set but isn't here, it's probably intentional.

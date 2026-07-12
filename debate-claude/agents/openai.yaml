@@ -1,0 +1,7 @@
+interface:
+  display_name: "Debate Claude"
+  short_description: "Adversarial debate using Claude as critic"
+  default_prompt: "Use $debate-claude to stress-test a plan or decision with Claude Fable at high effort."
+
+policy:
+  allow_implicit_invocation: false
