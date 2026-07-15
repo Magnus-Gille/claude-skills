@@ -90,18 +90,22 @@ close_snapshot="$(mktemp "${TMPDIR:-/tmp}/close-recheck.XXXXXX")"
 <close-skill-dir>/scripts/final-recheck.sh capture "$close_snapshot" <repo-path>...
 ```
 
-Keep an expected-change ledger for every mutation made by this close run. Before the final summary:
+Keep a small expected-change ledger in the session context for every mutation made by this close
+run: repo/worktree, before and after SHA, changed files, push, and PR state. Before the final summary:
 
 1. Refresh each tracking remote again with `git fetch --prune`.
 2. Run `final-recheck.sh compare` with the same snapshot and repo paths. It compares local branches,
    every attached worktree's HEAD/upstream/status fingerprint, and open GitHub PR heads/state when
    `gh` is available.
-3. Classify every difference against the expected-change ledger. Do not dismiss the complete diff
+3. Classify every difference against the expected-change ledger. Never dismiss the complete diff
    merely because this close run made one expected commit.
-4. Reconcile unexpected changes once: rerun status/PR inspection, reread changed handoff files, and
-   do not clean, commit, merge, or overwrite newly observed work.
-5. Capture a new baseline, refresh remotes, and compare once more. If the second final check changes
-   again, stop mutating state and report active concurrent work plus the exact freshness limit.
+4. For unexpected changes, treat them as concurrent: rerun status/PR inspection for the affected
+   repo, reread changed handoff files, and reconcile the final summary. Do not clean, commit, merge,
+   or overwrite newly observed work. If Munin was already updated, log the correction first and use
+   a fresh read plus compare-and-swap for any status correction.
+5. After reconciliation, capture a new baseline, refresh remotes, and compare once more. If this
+   second final check changes again, stop mutating state and report active concurrent work plus the
+   exact freshness limitation instead of claiming a stable close.
 6. Remove the snapshot only after a stable final check or after documenting the concurrency limit.
 
 Exit code `0` means stable, `3` means state changed, and any other nonzero code means the recheck
@@ -274,6 +278,9 @@ Provide brief summary to the user:
 ### Git
 ✓ Affected repositories audited: <repo list>
 ✓ Remote refs refreshed (or freshness limitation documented) per affected repo
+✓ Final local/remote/forge concurrency recheck stable at <timestamp>
+!! Concurrent changes detected during close — reconciled once: <repo/branch/PR>
+!! State changed again on the second final check — no cleanup/overwrite; freshness limit documented
 ✓ Snapshot taken (or: committed via /commit workflow)
 ✓ Expected branches and remote status checked per repo
 !! Local-only untracked files documented
