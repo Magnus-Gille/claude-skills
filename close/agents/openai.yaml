@@ -1,0 +1,4 @@
+interface:
+  display_name: "Session Close"
+  short_description: "Close sessions with a consistent handoff"
+  default_prompt: "Use $close to audit and close this session with the canonical report."

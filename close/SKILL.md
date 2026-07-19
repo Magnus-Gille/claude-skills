@@ -1,16 +1,74 @@
 ---
 name: close
-description: Session closing checklist for Git state, documentation, handoff files, and Munin memory. Use when the user invokes /close or asks to wrap up a session, including work that touched multiple repositories.
+description: Close a coding-agent session by auditing Git and worktrees, preserving handoff state, updating documentation and Munin when warranted, cleaning bounded temporary artifacts, and returning one canonical end-of-session report. Use when the user invokes /close or $close, asks to close or wrap up a session, or requests an end-of-session handoff across one or more repositories.
 ---
 
-# /close - Session Closing Checklist
+# close - Session Closing Checklist
 
 Run before ending a session to ensure everything is properly wrapped up.
 
 ## Usage
 
-- `/close` - Run full closing checklist
-- `/close quick` - Abbreviated check (git snapshot + local state file update)
+- `/close` or `$close` - Run the full closing checklist
+- `/close quick` or `$close quick` - Run the abbreviated checklist
+
+## Canonical report contract
+
+The audit may vary with the session. **The final report must not.** Always render the final response
+with `scripts/render-report.py`; never compose or reformat the report manually.
+
+1. Assemble a bounded temporary JSON file with this shape:
+
+```json
+{
+  "mode": "full",
+  "closed_at": "YYYY-MM-DD HH:MM TZ",
+  "scope": ["repo-or-workspace"],
+  "completed": ["Concrete completed outcome."],
+  "repositories": [
+    {
+      "name": "repo",
+      "branch": "main",
+      "working_tree": "clean",
+      "remote": "origin/main synchronized",
+      "disposition": "complete"
+    }
+  ],
+  "verification": ["Tests passed."],
+  "persistence": ["STATUS.md updated."],
+  "deployment": ["Not changed."],
+  "cleanup": ["Removed bounded disposable cache."],
+  "blockers": [],
+  "warnings": [],
+  "pending": []
+}
+```
+
+2. Use short factual strings. Include one repository row per affected Git root, including clean
+   roots. Describe deliberately retained dirty state in `working_tree` and `disposition`; do not
+   hide it in prose.
+3. Put only conditions that prevent a safe close in `blockers`. Put freshness limits, intentionally
+   retained dirty state, open PRs, and other non-blocking caveats in `warnings`. Put concrete
+   follow-ups in `pending` in priority order.
+4. For quick mode, still populate every field. Use explicit entries such as `Not checked in quick
+   mode.` rather than dropping sections.
+5. Render and capture stdout:
+
+```bash
+python3 <close-skill-dir>/scripts/render-report.py <close-report.json>
+```
+
+6. Delete the temporary JSON after rendering. Return the renderer's stdout **verbatim** as the final
+   answer. Add no greeting, explanation, alternative summary, follow-up question, or text after it.
+
+The renderer fixes heading order, repository sorting, empty-section placeholders, and status:
+
+- `NOT READY` when `blockers` is non-empty.
+- `READY WITH NOTES` when there are no blockers but `warnings` or `pending` is non-empty.
+- `READY` only when all three are empty.
+
+Do not override or editorialize the derived status. If the renderer itself is missing or fails, add
+that as a blocker, preserve the same section order shown by the script, and do not claim `READY`.
 
 ## Checklist
 
@@ -116,14 +174,14 @@ PR state. A registered worktree whose directory is already missing is recorded a
 ### 2. Documentation Review
 
 Check if session work requires documentation updates:
-- [ ] CLAUDE.md - folder structure, workflows, MCP integrations, skills
+- [ ] AGENTS.md / CLAUDE.md - folder structure, workflows, MCP integrations, skills
 - [ ] Skill SKILL.md files - if skill behavior changed
 - [ ] README files - in relevant folders
 - [ ] **Living / generated artifacts** - if the project's CLAUDE.md defines maintained artifacts (e.g. a generated `site/` of HTML status pages, dashboards), follow its documented update contract and refresh them to reflect this session's work. Skip if this session changed no project state.
 
 **Questions to consider:**
-- Did we add new folders? → Update CLAUDE.md folder structure
-- Did we add/modify skills? → Update CLAUDE.md skills section
+- Did we add new folders? → Update the repository's canonical instruction file
+- Did we add/modify skills? → Update the canonical instruction file's skills section
 - Did we change workflows? → Update relevant docs
 - Did deployment copy local-only files, require manual cleanup, or change rsync/exclude behavior? → Document the operational fix or verified cleanup location.
 - Does CLAUDE.md define living artifacts (e.g. `site/`)? → Apply their documented update contract
@@ -227,7 +285,8 @@ Also include when relevant:
 
 ### 8. Munin Memory Update
 
-Claude Code is the bridge between local files and Munin. Desktop, Web, and Mobile sessions can only see Munin, so Code sessions must keep it current.
+Local Code/CLI sessions bridge local files and Munin. Desktop, Web, and Mobile sessions can only see
+Munin, so filesystem-capable sessions must keep it current.
 
 **Update when:** Code was committed or a decision was made this session.
 **Skip when:** Pure Q&A, exploration, read-only sessions, or memory already updated during session.
@@ -244,66 +303,25 @@ rewrite unrelated project statuses merely because they were included in the Git 
 
 ### 9. Skills Repo Sync
 
-If skills were created or modified this session and `~/.claude/skills` is a git checkout with a remote, commit and push automatically:
+The tracked skill repository is the source of truth. Claude and Codex installations should point to
+the same skill folder rather than carry independent copies. Never patch an installed duplicate and
+leave the tracked source unchanged.
+
+If skills were created or modified this session and the canonical skill repository has a remote,
+commit and push automatically:
 ```bash
-cd ~/.claude/skills && git add -A && git commit -m "update <skill-name>" && git push
+cd <canonical-skill-repo> && git add <skill-name> && git commit -m "update <skill-name>" && git push
 ```
-Skip silently if `~/.claude/skills` has no remote configured.
+Skip silently if the canonical repository has no remote configured. Reconcile any divergent
+installed copy by replacing it with a symlink to the canonical folder after preserving any unique
+content.
 
-### 10. Session Summary
+### 10. Render the final report
 
-Provide brief summary to the user:
-```
-## Session Summary
-
-### Completed
-- [List of completed work]
-
-### Commits
-- abc1234 Commit message 1
-- def5678 Commit message 2
-
-### Pending/Notes for Next Session
-- [Any incomplete work or follow-ups]
-
-### Documentation Updated
-- [List of docs updated, or "None needed"]
-```
-
-## Output Format
-
-```
-## Pre-Close Checklist
-
-### Git
-✓ Affected repositories audited: <repo list>
-✓ Remote refs refreshed (or freshness limitation documented) per affected repo
-✓ Final local/remote/forge concurrency recheck stable at <timestamp>
-!! Concurrent changes detected during close — reconciled once: <repo/branch/PR>
-!! State changed again on the second final check — no cleanup/overwrite; freshness limit documented
-✓ Snapshot taken (or: committed via /commit workflow)
-✓ Expected branches and remote status checked per repo
-!! Local-only untracked files documented
-!! Dirty secondary worktree '<path>' left untouched - changed files listed
-
-### Documentation
-✓ CLAUDE.md up to date
-✓ Skills documented
-
-### Local State File
-✓ STATUS.md updated with resumption context
-
-### Munin Memory
-✓ Project status updated (phase change)
-✓ Workbench updated (project completed)
-- or: ✓ No updates needed (incremental session)
-
-### Potential Skill Improvements
-- /inbox skill could auto-detect customer names from content
-
-### Ready to Close
-All checks passed. Session can be closed.
-```
+After all mutations and the stable final concurrency comparison, assemble the JSON record described
+in **Canonical report contract**, render it, delete the JSON, and return stdout verbatim. Internal
+checklist detail, commands, tool logs, discarded alternatives, and potential skill ideas do not
+belong in the final response unless they produce a concrete warning or pending action.
 
 ## Quick Mode
 
@@ -315,6 +333,6 @@ Use the same bounded affected-repository set and refresh each tracking remote be
 2. Dirty secondary worktree warning (`git worktree list` plus `git -C <path> status --short --branch`)
 3. Local state file update (always — this is the minimum for session continuity)
 4. Final fetch plus `final-recheck.sh compare`; reconcile once or report active concurrent work
-5. Brief summary of session commits
+5. Canonical rendered report using `mode: "quick"`; all sections remain present
 
 Skip documentation review, skill improvements, Munin updates, and detailed cleanup.

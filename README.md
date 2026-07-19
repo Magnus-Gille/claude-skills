@@ -22,7 +22,7 @@ After install, restart Claude Code (or wait for the next session) and the skills
 
 | Skill | What it does |
 |-------|--------------|
-| `/close` | Session closing checklist — git snapshot/commit, docs review, local state file update, optional Munin sync. |
+| `/close` | Session closing checklist — Git/worktree audit, handoff persistence, cleanup, optional Munin sync, and one deterministic cross-agent report format. |
 | `/commit` | Standardized git commit workflow: author verification, diff review, security check, conventional message, push. |
 | `/debate` | Adversarial debate against a cross-model reviewer (Codex or Antigravity/agy) to stress-test a draft, plan, or design before finalizing. Multi-round critique with self-review and summary. Backend chosen via `--model codex\|agy` (defaults to codex). |
 | `/eli5` | Re-explain the previous assistant turn in plain language — no jargon, no unexplained acronyms, short sentences. |
@@ -43,7 +43,14 @@ Some skills shell out to external CLIs or MCP servers:
 
 The remaining skills (`close`, `commit`, `eli5`) only need standard `git` and Claude Code itself.
 
-## Codex companion skill
+## Codex companion skills
+
+`close/` is shared by Claude and Codex. Point both installations to this same tracked folder so the
+workflow and final report renderer cannot drift:
+
+```bash
+ln -s /path/to/claude-skills/close ~/.codex/skills/close
+```
 
 `debate-claude/` mirrors the `/debate` protocol for Codex: Codex drafts and responds while Claude Fable reviews at high effort, with Claude Opus at high effort as the automatic fallback. Install it for Codex by symlinking the repository folder:
 
