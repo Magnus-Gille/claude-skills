@@ -123,18 +123,37 @@ git log --oneline -5
 git worktree list
 git branch --verbose --no-abbrev
 git branch --format='%(refname:short) %(upstream:track) %(objectname:short) %(subject)'
+# Include ignored local handoff files explicitly:
 git status --ignored --short STATUS.md PROGRESS.md TODO.md docs/PROGRESS.md docs/PLAN.md docs/ROADMAP.md 2>/dev/null
-# For each non-primary worktree from `git worktree list`:
+# For each non-primary worktree from `git worktree list`, check dirtiness before cleanup:
 git -C <worktree-path> status --short --branch
 ```
-- If uncommitted tracked changes exist → **run the `/commit` workflow** (author verify, security check, conventional message). Do not duplicate commit logic here.
-- If only expected local-only/untracked files exist, document them as intentionally left; do not run `/commit` just to commit scratch/config.
-- After committing, **push automatically** (`git push`). If no upstream is set, use `git push -u origin <branch>`.
+
+Check for:
+
+- Uncommitted tracked changes: commit, stash, or explicitly leave them.
+- Expected local-only/untracked files versus files that belong in Git.
+- Unmerged feature branches and unpushed commits.
+- Deployed-but-uncommitted changes or production receiving local-only files.
+- Stale PR branches/worktrees, including squash-merged branches that are not Git ancestors of main.
+- Dirty secondary worktrees and branches with gone upstreams.
+
+Actions:
+
+- If tracked changes exist and the user has not already authorized committing them, ask whether to
+  commit, stash, or leave. If committing is authorized, run the `/commit` workflow rather than
+  duplicating its author, security, message, and push checks here.
+- If only expected local-only files exist, document and leave them; do not commit scratch/config by
+  default.
 - If feature branches exist, ask user: merge now or leave for later?
-- If stale branches/worktrees exist, document them. Delete only clean worktrees/branches and only when cleanup was explicitly requested.
 - Group the final Git findings by repository, including clean repos, so cross-repo deployment and
   handoff state is explicit.
-- If clean, move on.
+- State deployed-but-uncommitted or deployed-local-only changes explicitly.
+- For a squash-merged, rebased, or cherry-picked branch, verify forge state and patch equivalence
+  before calling it unmerged. Use `git cherry`, `git range-diff`, or stable patch IDs as appropriate.
+- Before deleting a stale worktree or branch, verify its status. Delete only clean items and only
+  when cleanup was explicitly requested; otherwise record them as pending cleanup.
+- Never delete a dirty worktree. If uncertain, preserve it and report the exact path.
 
 #### Concurrency guard
 
@@ -177,12 +196,14 @@ Check if session work requires documentation updates:
 - [ ] AGENTS.md / CLAUDE.md - folder structure, workflows, MCP integrations, skills
 - [ ] Skill SKILL.md files - if skill behavior changed
 - [ ] README files - in relevant folders
+- [ ] Operational/configuration docs - if runtime, deployment, or client assumptions changed
 - [ ] **Living / generated artifacts** - if the project's CLAUDE.md defines maintained artifacts (e.g. a generated `site/` of HTML status pages, dashboards), follow its documented update contract and refresh them to reflect this session's work. Skip if this session changed no project state.
 
 **Questions to consider:**
 - Did we add new folders? → Update the repository's canonical instruction file
 - Did we add/modify skills? → Update the canonical instruction file's skills section
 - Did we change workflows? → Update relevant docs
+- Did production/runtime behavior change? → Update deployment or client docs and record config drift
 - Did deployment copy local-only files, require manual cleanup, or change rsync/exclude behavior? → Document the operational fix or verified cleanup location.
 - Does CLAUDE.md define living artifacts (e.g. `site/`)? → Apply their documented update contract
 
@@ -231,6 +252,8 @@ ls capture/ 2>/dev/null
 
 Check for:
 - [ ] Temporary files to delete
+- [ ] Privacy-sensitive temporary artifacts: recordings, transcripts, screenshots, exported mail,
+      settings/config backups, credentials, or user-data samples
 - [ ] Test files that shouldn't be committed
 - [ ] Stale branches that can be deleted or documented
 - [ ] Stale PR worktrees that can be removed or documented
@@ -241,6 +264,16 @@ Stale PR cleanup guidance:
 - Before deleting any worktree, run `git -C <worktree-path> status --short --branch`.
 - Do not delete dirty worktrees. Document exact path and changed files under pending notes.
 - If GitHub API/network is unavailable, document that PR-state verification was skipped rather than guessing.
+
+Temporary artifact guidance:
+
+- Inventory only artifacts created or consumed in the session; do not sweep unrelated temp trees.
+- Classify each as disposable build/cache data, reproducibility evidence, or privacy-sensitive data.
+- Delete disposable cache only when authorized and not needed for resumption.
+- Never delete the sole copy of benchmark, incident, or disclosure evidence without approval.
+- Without explicit cleanup authorization, retain privacy-sensitive artifacts, report their bounded
+  paths and aggregate size where useful, and request a deliberate keep/delete decision.
+- If deletion is authorized, verify absence without echoing private contents.
 
 ### 7. Session Handoff (Local State File)
 
@@ -295,11 +328,16 @@ For a multi-repo session, update each affected tracked project whose current sta
 rewrite unrelated project statuses merely because they were included in the Git audit.
 
 **Write protocol:**
-1. **Log decisions** — `memory_log` any decisions made this session with rationale. Append-only logs survive overwrites.
-2. **Write status with CAS** — Update `projects/<name>/status` with a lifecycle tag. Pass `expected_updated_at` from your earlier read to prevent blind overwrites. If the server returns a conflict, warn the user.
+1. **Log first** — append decisions and rationale with `memory_log` before changing mutable status.
+2. **Read before write** — read the current status and retain its `updated_at` value. If another
+   environment wrote since this session began, reconcile rather than blindly overwrite.
+3. **Write status with CAS** — update `projects/<name>/status` with the prior `updated_at` as
+   `expected_updated_at`. If the server reports a conflict, stop and warn the user.
    - **Phase:** Current project phase or milestone
    - **Current work:** What's actively being worked on (1-2 sentences)
    - **Blockers:** Anything preventing progress (or "None")
+
+Update the cross-project dashboard only when a project was created, completed, blocked, or unblocked.
 
 ### 9. Skills Repo Sync
 
@@ -329,7 +367,8 @@ belong in the final response unless they produce a concrete warning or pending a
 
 Use the same bounded affected-repository set and refresh each tracking remote before classifying status.
 
-1. Git snapshot (snapshot-mode repos) or `/commit` workflow (normal repos)
+1. Git snapshot for explicitly designated snapshot-mode repos; otherwise audit Git state and run
+   `/commit` only when committing is already authorized
 2. Dirty secondary worktree warning (`git worktree list` plus `git -C <path> status --short --branch`)
 3. Local state file update (always — this is the minimum for session continuity)
 4. Final fetch plus `final-recheck.sh compare`; reconcile once or report active concurrent work
