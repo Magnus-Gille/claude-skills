@@ -69,10 +69,12 @@ The **Grimnir Roadmap** is project **1** (`--owner Magnus-Gille`); new items aut
 
 Then **verify** all landed on the board (item-add prints nothing useful on success):
 ```bash
-gh project item-list 1 --owner Magnus-Gille --format json -L 2000 | \
-  python3 -c 'import sys,json; d=json.load(sys.stdin); [print((c:=it["content"]).get("repository","").split("/")[-1], c.get("number"), it.get("status")) for it in d["items"]]'
+LIMIT=2000; gh project item-list 1 --owner Magnus-Gille --format json -L $LIMIT | \
+  python3 -c 'import sys,json; d=json.load(sys.stdin); n=len(d["items"]); print(f"returned {n} items (truncated if == your -L)"); [print((c:=it["content"]).get("repository","").split("/")[-1], c.get("number"), it.get("status")) for it in d["items"]]'
 ```
-**Use a limit well above the board size, and sanity-check the returned count.** `item-list` silently truncates at `-L`: on 2026-07-25 the board held 315 items, `-L 300` returned exactly 300, and all six just-added issues reported as MISSING because they sorted past the cutoff. If the returned count equals your `-L` value exactly, the list is truncated — raise it and re-run before concluding anything is absent.
+**Use a limit well above the board size, and sanity-check the returned count.** `item-list` truncates at `-L` with no warning, and newly-added items sort last — so a too-low limit makes exactly the items you just added look missing. Observed 2026-07-25: `-L 300` returned exactly 300 items with all six just-added issues absent; re-running at `-L 2000` returned the full board with all six present.
+
+**The detection rule: if the returned count equals your `-L` value exactly, assume truncation** — raise the limit and re-run before concluding anything is absent. Do not treat a board size seen in a previous sweep as current; the count moves between sweeps.
 
 ## Step 8 — Log the sweep to Munin
 
