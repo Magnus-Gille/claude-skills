@@ -65,11 +65,14 @@ gh project item-add 1 --owner Magnus-Gille --url "$url"
 ```
 The **Grimnir Roadmap** is project **1** (`--owner Magnus-Gille`); new items auto-land in **Todo**. Omit `--label` unless you've confirmed the label exists in that repo (missing labels fail the create).
 
+**Required token scope:** `item-add` needs the **write** scope `project`. `read:project` is NOT sufficient — and the CLI's own error message misleadingly tells you to run `gh auth refresh -s read:project`, which does not fix it. If item-add fails on scopes, have the owner run `gh auth refresh --hostname github.com -s project` in a real terminal (the device-code flow needs a TTY; `!`-prefixed in-session runs fail with "--hostname required when not running interactively"). This blocked two consecutive sweeps (2026-07-15, 2026-07-25).
+
 Then **verify** all landed on the board (item-add prints nothing useful on success):
 ```bash
-gh project item-list 1 --owner Magnus-Gille --format json -L 300 | \
+gh project item-list 1 --owner Magnus-Gille --format json -L 2000 | \
   python3 -c 'import sys,json; d=json.load(sys.stdin); [print((c:=it["content"]).get("repository","").split("/")[-1], c.get("number"), it.get("status")) for it in d["items"]]'
 ```
+**Use a limit well above the board size, and sanity-check the returned count.** `item-list` silently truncates at `-L`: on 2026-07-25 the board held 315 items, `-L 300` returned exactly 300, and all six just-added issues reported as MISSING because they sorted past the cutoff. If the returned count equals your `-L` value exactly, the list is truncated — raise it and re-run before concluding anything is absent.
 
 ## Step 8 — Log the sweep to Munin
 
