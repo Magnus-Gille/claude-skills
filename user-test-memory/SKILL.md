@@ -217,10 +217,16 @@ For a richer signal, run the test across Claude + Codex (OpenAI) + Antigravity (
 | Family | How | Constraint |
 |--------|-----|------------|
 | **Claude** opus/sonnet/haiku | Native subagents (Workflow `agent()`) | Full read+write |
-| **Codex** `gpt-5.5` ×3 | Wrapper agent shells out: `codex exec -m gpt-5.5 < /tmp/brief-<id>.txt` | Full read+write via munin bridge |
+| **Codex** ×N | Wrapper agent shells out: `codex exec --skip-git-repo-check -s workspace-write -m <model> -c model_reasoning_effort=<effort> "$(cat brief-<id>.md)"` | Full read+write via munin bridge |
 | **Antigravity** `agy` ×3 | Wrapper agent shells out: `agy --print "$(cat /tmp/brief-<id>.txt)"` | **Read-only** — writes hit a permission prompt in headless mode; skip Phase 2 for agy runners |
 
-**Model note:** Only `gpt-5.5` is available under ChatGPT-account Codex auth (other slugs return 400). Probe first with `codex exec -m <slug> "Reply with only: PROBE_OK"` and check that the output is NOT echoed from the prompt.
+**Model note (verified 2026-07-25, codex-cli 0.145.0):** ChatGPT-account Codex auth exposes only `gpt-5.6-sol` and `gpt-5.5`. Everything else — `gpt-5.6`, `gpt-5.6-codex`, `gpt-5.5-codex`, `gpt-5.6-pro`, `*-mini`, `gpt-5.x`, `o3` — returns `400 … not supported when using Codex with a ChatGPT account`. Always re-probe before a run: `codex exec --skip-git-repo-check -s read-only -m <slug> "Reply with only: PROBE_OK"`, and check the output is NOT echoed from the prompt.
+
+**Build tiers from reasoning effort, not model count.** `-c model_reasoning_effort=` accepts `low` / `medium` / `high` / `xhigh` (`minimal` errors). A 5-runner Codex fleet is e.g. sol@xhigh, sol@high, sol@low, g55@high, g55@low. Effort is the dominant variable: in the 2026-07-25 run the xhigh runner was the only one to find a data-loss delete race and to read consolidation output critically; the low-effort runners still found every consensus issue, so the low tiers are worth keeping.
+
+**Codex runners must NOT run inside the repo under test.** `codex exec` auto-loads `AGENTS.md`/`CLAUDE.md` from the working directory, which hands the runner the full tool inventory, namespace grammar and conventions — invalidating the discoverability grade. Run from a neutral scratch directory and pass `-c project_doc_max_bytes=0`. (The global `~/.codex/AGENTS.md` still loads; that is acceptable, it carries handshake discipline but not the tool surface.)
+
+**Codex write access works headlessly** despite `approval_mode = "approve"` on the munin tools in `~/.codex/config.toml` — no `--dangerously-bypass-approvals-and-sandbox` needed. Use `-s workspace-write` with cwd = the scratch dir so runners can also write their report file; ask for the report both as a file and as the final message.
 
 ### Namespace rules (critical)
 
@@ -247,6 +253,10 @@ When synthesising across families, weight **cross-family consensus** higher than
 
 After the run, delete all `testing/*` sandbox namespaces. Codex and agy runners connect as `principal: owner`, so their writes land in prod munin — clean up even if you think they failed.
 
+**Cleanup is currently not fully possible** (verified 2026-07-25, munin-memory v0.6.1, filed as munin-memory#279): namespace-wide delete returns `namespace_delete_disabled` unless `MUNIN_ALLOW_NAMESPACE_DELETE=true` is set server-side, and single-entry delete needs `namespace` + `key`, so **log entries cannot be deleted at all**. Budget for this: a 5-runner run leaves ~16 namespaces and ~80 state entries behind. Either accept the residue, or ask Magnus to flip the flag before the run. Do delete anything a runner wrote *outside* its sandbox — one runner escaped `testing/*` to test `memory_update_status` and created a live `projects/<runner-id>/status`.
+
+**Warn runners explicitly not to work around a sandbox restriction by writing elsewhere.** Add it to the briefing, not just the report format.
+
 ---
 
 ## Key Rules
@@ -259,3 +269,5 @@ After the run, delete all `testing/*` sandbox namespaces. Codex and agy runners 
 6. **Specific feedback** — Vague feedback ("it was fine") is useless. The report format enforces specificity.
 7. **Cross-model comparison** — The synthesis matters more than individual reports. Consensus findings are high-confidence signals.
 8. **De-risk external runners first** — Verify Codex and agy can reach and call munin with a single-tool probe before running the full fan-out.
+9. **Verify the runners' claims before filing** — reports disagree, and confident reports are sometimes wrong. In the 2026-07-25 Codex run two runners gave contradictory accounts of limit-clamping, and one asserted "no warning" where the server does warn. Check each finding against the source (or reproduce it) before it becomes a ticket; cite the confirming file/line in the issue.
+10. **Concurrent runners contaminate the review inbox** — every runner authenticates as `principal: owner`, so `memory_review list` shows every other runner's pending proposals. That is itself a finding, but it also means proposal-workflow results are not independent across runners.
