@@ -1,0 +1,4 @@
+interface:
+  display_name: "Cloudflare Private Static Site"
+  short_description: "Create and release a small password-protected site"
+  default_prompt: "Use $cloudflare-private-static-site to create and safely release a private static site on my Cloudflare domain."

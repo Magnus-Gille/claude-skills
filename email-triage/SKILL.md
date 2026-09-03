@@ -5,6 +5,8 @@ description: Reliable conversation-level email triage over a date range. Identif
 
 # /email-triage — Reliable conversation-level email triage
 
+Account-to-CLI map and mail/calendar search rules: `~/repos/claude-config/docs/accounts.md`.
+
 `/check-email` is for quick inbox glances. **This skill is for trustworthy backlog triage** over a long window (weeks/months), where the cost of a wrong verdict is real (chasing a closed deal, missing a live one).
 
 ## The failure mode this skill exists to prevent
