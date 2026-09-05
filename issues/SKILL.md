@@ -1,6 +1,6 @@
 ---
 name: issues
-description: Check GitHub issues and tickets for the current repo. List open issues, view details, filter by label, or search. Use when the user asks about issues, tickets, bugs, or backlog.
+description: Inspect current-repository GitHub issues or prepare a specifically requested routed issue. Use when the user asks to list, view, filter, search, or create an issue.
 ---
 
 # /issues - Check GitHub Issues
@@ -25,7 +25,11 @@ Use the git remote to determine the owner/repo:
 gh repo view --json nameWithOwner -q '.nameWithOwner'
 ```
 
-If this fails, tell the user they're not in a GitHub repo.
+If this fails, do not infer that the directory is not a GitHub repo. Check
+`git remote get-url origin` (or the relevant remote), resolve its owner/repo, and
+retry the read-only lookup. If the lookup may be an authentication/API problem,
+retry `gh api user --jq .login` before reporting the exact diagnosis. Stop only
+when there is no usable remote or the read-only identity/repository checks fail.
 
 ### Step 2: Run the appropriate query
 
@@ -71,14 +75,30 @@ If an issue has no labels, group it under **Other**.
 
 **For single issue view:** Show title, status, labels, body, and any comments. If the issue references code, note the relevant files.
 
-### Step 4: Offer next steps
+### Step 4: Prepare or publish a routed issue
+
+When the user asks to create an issue, or asks for a routed issue proposal:
+
+1. Resolve the owning repository and search it for likely duplicates before drafting.
+2. Prepare a title, labels only when verified, and a body in a temporary file with
+   the problem, evidence, proposed fix, and source/owning-repo attribution. For a
+   cross-repo Grimnir task, include `from:<sender>` when the target uses sender
+   labels and `Filed by: <sender>` in the body.
+3. Preview the exact owner/repo, title, labels, body, and any board target. Use
+   `gh issue create --repo <owner/repo> --title ... --body-file <file>` only after
+   explicit user direction to publish; preparation alone never publishes.
+4. Only the owning Grimnir session may add an item to the Grimnir Roadmap board,
+   and it must have explicit authorization for that board mutation. This skill may
+   report board relevance without adding the item.
+
+### Step 5: Offer next steps
 
 After presenting, briefly suggest relevant actions:
 - "Want me to look into any of these?"
 - "Want me to close this with a comment?" (if viewing a resolved issue)
 - "Want me to create a new issue?" (if listing and something is missing)
 
-Don't be verbose about it — one line is enough.
+Don't be verbose about it — one line is enough. Creating, commenting, closing, or adding to a board requires explicit user direction.
 
 ## Key Rules
 
