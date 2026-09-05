@@ -1,0 +1,4 @@
+interface:
+  display_name: "Presentify"
+  short_description: "Create concise one-page HTML presentations"
+  default_prompt: "Use $presentify to turn this Markdown note into a compact one-page HTML presentation and flag errors."

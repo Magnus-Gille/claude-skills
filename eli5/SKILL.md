@@ -1,15 +1,17 @@
 ---
 name: eli5
-description: Re-explain the previous response in plain, easy-to-understand language. No jargon, no acronyms without unpacking, short sentences. Use when the user types /eli5 — they want the same content as the last assistant turn, but accessible to a non-expert.
+description: Explain a previous response or requested technical topic in plain language. Use when the user asks for an ELI5 explanation or invokes /eli5; preserve the claims and match the source length.
 ---
 
 # /eli5 — Explain Like I'm 5
 
-Take the immediately previous assistant message and re-explain it in plain language.
+Explain the requested source in plain language. Use the immediately previous assistant
+message when the user points to the previous answer; otherwise use the named topic,
+document, error, decision, or workflow.
 
 ## Rules
 
-1. **Same content, simpler form.** Cover the same points as the prior message. Don't drop information; translate it.
+1. **Same content, simpler form.** Cover the same points as the selected source. Don't drop information; translate it.
 2. **No jargon.** If a technical term is unavoidable, define it inline the first time. ("aider — a command-line tool that lets an AI edit code")
 3. **Short sentences.** Aim for ~15 words per sentence. Break up long ones.
 4. **Concrete over abstract.** Replace "harness misconfiguration" with "I was running the tool with the wrong settings."

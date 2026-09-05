@@ -1,0 +1,31 @@
+--- a/SKILL.md
++++ b/SKILL.md
+@@ -1,6 +1,6 @@
+ ---
+ name: web-perf
+-description: Analyzes web performance using Chrome DevTools MCP. Measures Core Web Vitals (LCP, INP, CLS) and supplementary metrics (FCP, TBT, Speed Index), identifies render-blocking resources, network dependency chains, layout shifts, caching issues, and accessibility gaps. Use when asked to audit, profile, debug, or optimize page load performance, Lighthouse scores, or site speed. Biases towards retrieval from current documentation over pre-trained knowledge.
++description: Investigate page-load performance and Lighthouse results using browser measurements and relevant source inspection.
+ ---
+ 
+ # Web Performance Audit
+@@ -15,18 +15,9 @@
+ | Chrome DevTools docs | `https://developer.chrome.com/docs/devtools/performance` | Tooling APIs, trace analysis |
+ | Lighthouse scoring | `https://developer.chrome.com/docs/lighthouse/performance/performance-scoring` | Score weights, metric thresholds |
+ 
+-## FIRST: Verify MCP Tools Available
++## Select available evidence
+ 
+-**Run this before starting.** Try calling `navigate_page` or `performance_start_trace`. If unavailable, STOP—the chrome-devtools MCP server isn't configured.
+-
+-Ask the user to add this to their MCP config:
+-
+-```json
+-"chrome-devtools": {
+-  "type": "local",
+-  "command": ["npx", "-y", "chrome-devtools-mcp@latest"]
+-}
+-```
++Inspect the tools actually available. For Chrome DevTools traces, use their current schemas and the workflow below. If that backend is unavailable, continue useful authorized work with available browser measurements, Lighthouse output, or source inspection. State which evidence was collected and its limitations; static inspection is not a measured browser trace. Ask for missing setup only when the requested measurement cannot otherwise be obtained. Do not modify MCP configuration during an ordinary audit.
+ 
+ ## Key Guidelines
+ 

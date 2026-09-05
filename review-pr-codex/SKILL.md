@@ -1,178 +1,71 @@
 ---
 name: review-pr-codex
-description: Run a cross-model PR review using Codex CLI. Invokes Codex headless to review the current branch diff, then reads findings and fixes issues or reports to user.
-argument-hint: [PR number or branch name]
+description: Run a requested, read-only cross-model review of a pull request or branch diff using the installed Codex CLI. Use only when the user asks for review-pr-codex or a Codex PR review.
 ---
 
-# /review-pr-codex - Cross-Model PR Review via Codex
+# /review-pr-codex — Read-only Codex review
 
-Run an adversarial code review of the current branch using the Codex CLI (a different model family), then act on the findings. The value is catching blind spots that Claude misses.
+This Claude-facing skill invokes the installed Codex CLI as a separate reviewer. It reports findings for the current user to assess. It never edits files, commits, merges, pushes, posts comments, or silently substitutes another reviewer.
 
-## Usage
+## Resolve the review scope
 
-- `/review-pr-codex` - Review the current branch diff against main
-- `/review-pr-codex 42` - Review PR #42
+- For a PR number, read its base and head with:
 
-## Prerequisites
+  ```bash
+  gh pr view <number> --json baseRefName,headRefName,title,url
+  ```
 
-- `codex` CLI installed and **authenticated** — *either* via ChatGPT sign-in (`codex login`, the common case on a personal machine) *or* via an `OPENAI_API_KEY` env var. **Do not gate on `OPENAI_API_KEY` alone** — ChatGPT-authenticated Codex works with no API key set, and bailing on a missing key is a false negative (it stores auth in `~/.codex/auth.json`). Verify with `codex login status` (prints `Logged in ...`); only treat Codex as unavailable if that fails *and* no `OPENAI_API_KEY` is set. **A passing `codex login status` does NOT guarantee Codex will run** — a ChatGPT/workspace plan can be out of quota, so `codex exec` may still fail at run time with `ERROR: Your workspace is out of credits. Add credits to continue.` Confirm availability at *exec* time, not just auth time; on genuine unavailability, use the **adversarial self-review fallback** (below).
-- A branch with commits diverged from main (or a PR number)
+- For a branch argument, resolve the branch and its intended base from the repository's PR or remote metadata.
+- With no argument, first inspect whether the current branch has an open PR. If it does not, discover the remote default branch from Git rather than assuming `main`; stop clearly if no reliable base exists. Confirm that the selected range contains changes.
 
-**Known-working model ids by auth type (Fix for the `400 invalid_request_error` failure mode):**
-- **ChatGPT-account auth** (the common personal-machine case): use `gpt-5.6-sol` (frontier), falling back to `gpt-5.5`, then `gpt-5.4`. **Do NOT use `-m gpt-5-codex`** — under ChatGPT-account auth it is rejected with `400 invalid_request_error: 'gpt-5-codex' model is not supported when using Codex with a ChatGPT account`, and the default model then tends to hang (seen 2026-05-31). The `*-codex` model ids are an API-key-auth surface only.
-- **`OPENAI_API_KEY` auth:** `gpt-5.6-sol` works; the `*-codex` ids are also available here.
+Keep the review scoped to the selected base/head and the changed files plus directly relevant tests and callers. Do not send unrelated repository content or secrets to another model.
 
-## When Codex is unavailable — adversarial self-review fallback
+## Prepare a read-only invocation
 
-Codex can fail in a way `codex login status` does **not** catch: auth succeeds ("Logged in using ChatGPT") but `codex exec` returns `ERROR: Your workspace is out of credits` (quota/credit exhaustion), or a transient API error. The review subagent comes back empty or with that error. **When Codex is genuinely unavailable and topping up isn't an option, do NOT silently skip the review** — fall back to an **adversarial self-review** as the substitute gate:
-
-1. **Multi-lens review.** Spawn several skeptical reviewer agents in parallel (a small `Workflow` with one agent per lens works well), each with a *distinct* lens — e.g. for a code PR: billing/correctness, concurrency & error-paths, privacy/security, test-adequacy; for a web/docs PR: docs-vs-reality, web-security/secret-leak, clarity. Each reads the diff read-only (`git diff main...HEAD`, `git show <branch>:<file>`) and returns structured findings (severity / file:line / issue / fix). Tell each agent to be adversarial — *assume there is a bug and hunt for the worst one* — but to substantiate every finding from the code.
-2. **Refute-pass (this is what makes a self-review trustworthy).** For each critical/high finding, spawn a skeptic that tries to *refute* it from the actual code; default `confirmed=false` unless demonstrable (many review findings are false positives — the guard exists elsewhere, the path is unreachable, a test already covers it). Only confirmed findings block the merge. Without this step a self-review churns on noise.
-3. **Fix the confirmed findings test-first, then merge** on a clean refute-pass — the same bar as Codex (no surviving critical/medium). Findings that are real but bigger/orthogonal → file as GitHub issues and fast-follow rather than bloat the PR.
-
-**Label it honestly — it is NOT the cross-model check this skill exists for.** The whole value of Codex is a *different model family* catching Claude's blind spots, which Claude-reviewing-itself cannot fully replace. So: tell the user it was a self-review (not Codex), note it in the PR/commit, and **flag those PRs for a real Codex pass when credits/availability return.** This fallback is strictly better than (a) skipping review, or (b) blocking the whole pipeline on a credit top-up the user has declined — but it is a substitute, not an equal.
-
-## Workflow
-
-> **Run the verbose work in a subagent (recommended).** Steps 2–4 generate a large diff and a long Codex execution log that you don't need verbatim — only the structured findings. Delegate Steps 1–4 to a subagent (e.g. an `Agent`/`Task` with `model: "sonnet"`) that runs the Codex invocation and **returns only the findings** (severity, file:line, issue, suggested fix), then you act on them in Steps 5–6 in the root session. This keeps the diff and raw Codex log out of root context — which matters when the review is one step in a longer session, and is essential for multi-round review loops (review → fix → re-review), where accumulated logs would otherwise force premature compaction. Give the subagent the exact commands and `< /dev/null` / timeout caveats below verbatim, and tell it explicitly what to return. **In the subagent prompt, state the auth rule from Prerequisites explicitly** — verify Codex with `codex login status`, and do NOT abort just because `OPENAI_API_KEY` is unset (ChatGPT-authenticated Codex is the normal case and needs no key). When reviewing a PR branch held in a worktree, point the subagent at that worktree dir. (For a quick one-off review in a short session, running inline is fine.)
-
-> **Concurrent-session isolation (hard-won 2026-07-10).** The literal `/tmp/codex-pr-review-*` paths below are a SHARED namespace — two Claude/Codex sessions reviewing different PRs at the same time WILL collide (observed: a review read another session's diff mid-run; it was only caught because the subagent noticed the diff didn't match its PR). Always substitute an isolated scratch dir for every `/tmp/codex-pr-review-*` path: `WORK=$(mktemp -d)` then use `$WORK/diff.txt`, `$WORK/result.md`, etc. When delegating to a subagent, say this explicitly in its prompt.
-
-> **Broken `code_mode_host` (observed 2026-07-10).** If the probe or exec fails with an error mentioning the `code_mode_host` binary, retry with `--disable code_mode_host` on the `codex exec` invocation — it fixed it cleanly; the review runs fine without that component.
-
-### Step 1: Determine what to review
-
-**If a PR number is given:**
-```bash
-gh pr view <number> --json baseRefName,headRefName
-```
-Use the base and head refs for the diff.
-
-**If no argument:**
-Use the current branch vs `main`. Verify there are commits to review:
-```bash
-git log --oneline main..HEAD
-```
-If empty, tell the user there's nothing to review.
-
-### Step 2: Generate the diff context
-
-Clean up any stale temp files from a prior run first — Codex runs in a shared environment and a leftover result file from a previous project will pollute the review:
+Before constructing the command, inspect the installed CLI rather than relying on remembered flags:
 
 ```bash
-rm -f /tmp/codex-pr-review-diff.txt /tmp/codex-pr-review-commits.txt /tmp/codex-pr-review-result.md
-git diff main...HEAD > /tmp/codex-pr-review-diff.txt
-git log --oneline main..HEAD > /tmp/codex-pr-review-commits.txt
+codex exec --help
+codex exec review --help
 ```
 
-Check the diff size. If over 5000 lines, warn the user that the review may be expensive and ask to proceed.
+Read [references/cli-notes.md](references/cli-notes.md) for dated, unverified
+local observations about invocation behavior. They are failure-handling hints, not
+CLI guarantees.
 
-### Step 2b: Pre-flight credit/availability probe (do this BEFORE the expensive review)
+Create a unique scratch directory with `mktemp -d`; never use a shared fixed `/tmp/codex-pr-review-*` path. Store only the selected diff, commit summary, and returned report there. The scratch directory must not contain credentials or unrelated files.
 
-`codex login status` passing does **not** mean `codex exec` will run — a ChatGPT/workspace plan can be out of credits, and that only surfaces *after* a full `high` effort round is consumed (observed 3× across May–June 2026). Run a near-free read-only probe first; it costs a trivial call instead of a 15–22 min review round:
+Use an invocation supported by the help output that is explicitly read-only and ephemeral, for example:
 
 ```bash
-# Capture the exit code directly (no pipe) — `${PIPESTATUS[0]}` is bash-only and is
-# empty under zsh, the macOS default shell, which would silently lose the rc check.
-codex exec --sandbox read-only --skip-git-repo-check -m gpt-5.6-sol "Reply with exactly: PROBE_OK" < /dev/null > /tmp/codex-pr-review-probe.txt 2>&1
-PROBE_RC=$?
-cat /tmp/codex-pr-review-probe.txt
+set +e
+codex exec -s read-only --ephemeral -C <worktree> -o <scratch>/result.md <prompt> \
+  </dev/null > <scratch>/stdout.log 2> <scratch>/stderr.log
+review_exit=$?
+set -e
 ```
 
-Evaluate the probe:
-- Output contains `out of credits` / `workspace is out of credits` / `You've hit your usage limit` (personal-plan wording, observed 2026-07-10 — often includes a retry time like "try again at 4:44 PM"; relay that time to the user so a retro pass can be scheduled) → **Codex is unavailable.** Do NOT run Step 3 (it would silently burn a round and fail). Go straight to the **adversarial self-review fallback** and tell the user Codex is out of credits.
-- Output contains `400` / `model is not supported` → wrong model id for this auth type. Retry the probe with `-m gpt-5.5`, then `-m gpt-5.4`. **If a fallback probe passes, use that same model id in Step 3 as well** (Step 3 otherwise hardcodes gpt-5.6-sol and would hit the same 400). If both fallbacks also fail, see the Prerequisites model-id table and fall back.
-- `PROBE_RC != 0` or no `PROBE_OK` in the output → treat Codex as unavailable; fall back.
-- Probe prints `PROBE_OK` → proceed to Step 3 with confidence the account can execute (using whichever model id passed the probe).
+Redirect stdin when the prompt is a positional argument. Capture stdout, stderr,
+and the exit status separately; inspect all three and treat a non-zero status as a
+failed review. Do not assume `-o` produced a usable file: check that it exists and
+is non-empty, and use captured stdout only when it contains the complete returned
+report. If there is no complete result, report the invocation failure rather than a
+clean review. Do not use workspace-write, danger-full-access, automatic approvals,
+or commands that allow the reviewer to alter the repository. A read-only shell
+sandbox does not by itself disable MCP, hooks, network access, or other configured
+capabilities: inspect the effective configuration and available flags, and narrow
+them where supported. Prefer a frozen, supplied diff/commit context with no tools
+when the CLI supports that mode. If the installed CLI cannot provide a suitably
+scoped review, stop and report the actual limitation.
 
-Then `rm -f /tmp/codex-pr-review-probe.txt`.
+Respect a model explicitly selected by the user. If no model is selected, use the configured/default model. Do not silently substitute a fallback model. Record the actual runtime model from CLI output or structured events; never infer it from the requested flag alone. If the CLI does not expose it, report that it was not exposed.
 
-### Step 3: Invoke Codex
+The prompt must tell the reviewer to inspect only the selected diff and relevant context, avoid all mutations and external communication, and return findings with severity, file/line, evidence, impact, and a concrete fix. Require it to say explicitly when no grounded findings exist.
 
-Before invoking Codex, compose a one-paragraph **PR context description** from your knowledge of the diff: what it does, why it was written, what the key risk or design decision is. Weave it into the prompt below where `<PR_CONTEXT>` appears — this is what makes Codex's review sharp instead of generic. A security guard PR gets security scrutiny; a refactor gets coupling scrutiny; a data-migration gets idempotency scrutiny.
+## Report findings
 
-```bash
-codex exec --sandbox workspace-write --skip-git-repo-check -m gpt-5.6-sol -c model_reasoning_effort='"high"' "You are a senior code reviewer performing a thorough review of a pull request.
+Read the complete returned message and distinguish a failed/empty invocation from a clean review. Present findings first, ordered by severity, with file and line references. Include residual test gaps and the actual reviewer/model identity when available.
 
-<PR_CONTEXT>
+Do not auto-fix or merge based on findings. The review process itself never mutates; code changes or publication require an explicit user request or an already-authorized task that includes them. If Codex is unavailable, report the failure and let the user choose a next step; do not silently replace the cross-model review with a forced multi-agent or self-review.
 
-FIRST, before any exploration, create /tmp/codex-pr-review-result.md containing a single line: '# Codex review (in progress)'. This guarantees a result file exists even if you run long. As you complete the review, OVERWRITE that file with your full findings. Do NOT defer the first write until the end.
-
-Then read the diff at /tmp/codex-pr-review-diff.txt and the commit log at /tmp/codex-pr-review-commits.txt.
-Also read any source files referenced in the diff to understand the full context — including test files that cover the changed code. Keep exploration proportional to the diff size — for a small diff, read only the changed files plus their direct tests; do not wander the whole repo.
-
-Review the changes for:
-1. **Bugs and regressions** — logic errors, broken edge cases, state that was correct before but isn't now
-2. **Security issues** — injection, auth bypasses, secrets exposure, unsafe input handling
-3. **API contract mismatches** — does the code match what the docs/README/CHANGELOG claim?
-4. **Missing error handling** — unhappy paths that silently fail or crash
-5. **Test coverage gaps** — changed behaviour that has no test, or tests that assert the wrong thing
-6. **Doc/config drift** — version numbers, setup instructions, or config files that contradict the code changes
-
-For each finding, include:
-- **Severity:** critical / medium / low
-- **File and line:** specific location
-- **Description:** what's wrong and why it matters
-- **Suggested fix:** how to address it (be concrete)
-
-If you find no issues, say so explicitly — don't invent problems.
-
-Write your complete review to /tmp/codex-pr-review-result.md in markdown format." < /dev/null 2>&1
-```
-
-**Important:**
-- **Always redirect stdin from `/dev/null`** (`… < /dev/null 2>&1`). `codex exec` reads stdin even when the prompt is passed as an argument, so in a non-TTY shell (Claude Code's Bash tool, background tasks, CI) it otherwise blocks forever on `Reading additional input from stdin...`. Do **not** wrap the call in `script -q /dev/null` to fake a TTY — `script` fails in socket-backed shells with `tcgetattr/ioctl: Operation not supported on socket`, leaving you with a silent hang. `< /dev/null` is the portable fix and works in both TTY and non-TTY contexts.
-- Use `--sandbox workspace-write` (not `-q` or `-o`, and NOT the deprecated `--full-auto` — Codex 0.132+ warns and `--sandbox workspace-write` is the replacement). Add `--skip-git-repo-check` so it also runs in non-git working dirs (without it Codex refuses with "Not inside a trusted directory").
-- **Pin the strongest model and effort:** `-m gpt-5.6-sol -c model_reasoning_effort='"high"'`. Cross-model PR reviews are high-stakes — use the "best model / High" setting, not the everyday config default. (`gpt-5.6-sol` is the current Codex frontier model; if it's unavailable in the active account, fall back to `-m gpt-5.5`, then `-m gpt-5.4`.)
-- Set Bash tool `--timeout 600000` — `high` effort can push close to the limit.
-- **No turn-budget flag exists.** `codex exec` (as of CLI 0.142.x) has no `--max-turns`/turn-cap option, so the only guards against the "runs 15–22 min, exits 0, writes nothing" hang (mode B, seen 2026-05-31 & 2026-06-23) are: (a) the **write-first** instruction in the prompt above (a placeholder result file is created before any exploration, so a hang still leaves a detectable artifact), (b) the **`< /dev/null`** stdin redirect, and (c) the Bash `--timeout`. If mode B recurs on a small diff, retry once with `-c model_reasoning_effort='"medium"'` (less likely to wander) before falling back.
-- Codex writes its output to a file; do NOT rely on `-o` for review content
-
-### Step 4: Read and verify the review
-
-First scan the raw Bash output for an **out-of-credits / hard error** signature. Primary triggers (act immediately): `out of credits`, `workspace is out of credits`, `usage limit`. Secondary (only treat as failure if there's also no findings file / no synthesized findings — these strings can appear in benign usage/attribution lines): `429`, `quota`. If a primary trigger is present, Codex consumed the round and produced nothing usable: **do NOT try to salvage an empty log.** Go directly to the **adversarial self-review fallback** (or a non-Anthropic provider — see below) and label the review honestly. (Step 2b should have caught this earlier; this is the backstop for an account that runs dry mid-review.)
-
-Otherwise read `/tmp/codex-pr-review-result.md` and check for failure modes:
-
-- **File contains only the `# Codex review (in progress)` placeholder (or is missing):** mode B — Codex hung/exited without finishing. Check the Bash log for partial findings; if the log is also empty (just repo grepping/reading, no synthesized findings), treat this as a **failed Codex run** and branch to the fallback. Do not pass off an empty log as "clean."
-- **File is a brief conversational summary (< 300 chars):** Codex wrote chatter instead of the review. Pull findings from the execution log if present; if absent, fall back.
-- **File looks complete:** Proceed to Step 5.
-
-**Auto-fallback target (Fix 3).** When the above branches to a fallback, prefer in this order so the **cross-model property is preserved** where possible:
-1. A **non-Anthropic** reviewer that's available — e.g. Gemini / `agy` (Antigravity) via the `debate` skill — so a different model family still reviews the diff. (If agy is unavailable — stale OAuth, not installed — don't burn time fixing it; skip to option 2.)
-   **agy caveats (hard-won 2026-07-10, when agy successfully substituted for an out-of-credits Codex):**
-   - Flag ORDER matters: `agy --print-timeout 9m --print "<prompt>"` — putting `--print-timeout` AFTER `--print` silently mis-parses and answers a question about the flag instead of running the review. Probe with a trivial `--print "Reply with exactly: PROBE_OK"` first.
-   - **agy runs agentically even in `--print` mode**: given a prompt with an inlined diff, it may still explore the filesystem, read the REAL repo instead of a pointed-at worktree, run the project's test suite, write Munin memory entries, and save its report as a brain artifact instead of printing it. Treat it as a side-effectful reviewer: say explicitly in the prompt what it must not touch, and check `git status` + recent Munin log entries afterwards.
-   - Quality data point (same code, same day): agy found 3 real issues; a retro Codex pass then found 7 more, including a flaw in agy's own suggested fix. When Codex quota resets, ALWAYS run the flagged retro pass — it is not ceremony.
-2. Otherwise the **adversarial multi-lens self-review Workflow** documented above (worked reliably and found real bugs on hugin #68). Label it as a self-review, not the cross-model check, and flag the PR for a real Codex pass when credits return.
-
-### Step 5: Present findings and act
-
-**If critical or medium findings exist:**
-
-Present each finding to the user with the severity, location, and suggested fix. Ask:
-> "I can fix these now, or you can review them first. What do you prefer?"
-
-If the user says fix:
-- Fix each issue
-- Run tests to verify fixes don't break anything
-- Stage and commit with message: `fix: address codex review findings`
-
-**If only low findings or no issues:**
-
-Report the clean review to the user. No action needed.
-
-### Step 6: Clean up
-
-```bash
-rm -f /tmp/codex-pr-review-diff.txt /tmp/codex-pr-review-commits.txt /tmp/codex-pr-review-result.md
-```
-
-## Key Rules
-
-1. **Always read the full review output** — don't summarize findings you haven't read
-2. **Don't auto-fix without asking** — present findings first, let the user decide
-3. **Run tests after fixing** — never push fixes without verifying they work
-4. **Don't argue with valid findings** — if Codex is right, concede and fix it
-5. **Do push back on invalid findings** — explain why to the user so they can judge
-6. **Protect root context** — delegate the verbose Steps 2–4 to a subagent that returns only the structured findings; never let a full diff + raw Codex log accumulate in the root session, especially across review→fix→re-review rounds
+Remove the unique scratch directory after capturing the report unless the user asks to preserve it.

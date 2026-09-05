@@ -1,17 +1,17 @@
 ---
 name: commit
-description: Create or amend a Git commit with author verification, diff review, and a conventional message. Use only when the user explicitly asks to commit or amend changes.
+description: Create or amend a Git commit with author verification, diff review, and a conventional message. Use only when the user explicitly invokes $commit or asks to commit or amend changes.
 ---
 
-# /commit - Standardized Git Commit
+# $commit - Standardized Git Commit
 
 Create clean, well-documented git commits with safety checks.
 
 ## Usage
 
-- `/commit` - Stage, review, commit, and optionally push
-- `/commit <message>` - Commit with a specific message (still runs safety checks)
-- `/commit amend` - Amend the explicitly requested commit
+- `$commit` - Stage, review, and commit changes
+- `$commit <message>` - Commit with a specific message (still runs safety checks)
+- `$commit amend` - Amend the explicitly requested commit
 
 ## Workflow
 
@@ -22,7 +22,7 @@ git config user.name
 git config user.email
 ```
 
-- The user's expected `user.name` and `user.email` should be configured in their global `~/.gitconfig` or in the repo's `.git/config`. If `git config user.email` returns an unexpected value (e.g. a CI/bot email, or empty), warn the user before proceeding.
+- The configured identity should be the user's intended name and email for this repository. If either is empty or unexpected (for example, a CI or bot identity), warn before proceeding.
 - Do NOT silently fix it — the user should decide whether to update the config or commit under the current identity.
 
 ### Step 2: Review Changes
@@ -57,7 +57,7 @@ If no message was provided, draft one:
 - Types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `style`
 - Keep the first line under 72 characters
 - Add a body paragraph if the change is non-trivial
-- Always end with: `Co-Authored-By: Claude <assistant> <noreply@anthropic.com>` (use the current model name)
+- Always end with: `Co-Authored-By: Codex <noreply@openai.com>`
 
 Show the proposed message and staged diff summary, then commit under the existing request. Ask again only when the user required message approval or a material scope decision remains.
 

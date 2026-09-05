@@ -1,0 +1,222 @@
+[
+  {
+    "skill": "find-skills",
+    "files": [
+      {
+        "path": "SKILL.md",
+        "before_sha256": "1e85f6f9686e145aca4a124e3b704b9bbea9aa87e08515c1e352eee70f6e6e7a",
+        "after_sha256": "7b5913cb31224660977a033f43504d0d4c650aea177afd6b46db191dc5036616"
+      }
+    ]
+  },
+  {
+    "skill": "wrangler",
+    "files": [
+      {
+        "path": "SKILL.md",
+        "before_sha256": "42abe11ba6c0cb0c135deed1d591d844838fe0b61fc8c6d675a832435508a61b",
+        "after_sha256": "e4ac88b860d6c3ce55be578a3102768cd4a07648ba153c98b533e897ae4bc8e3"
+      },
+      {
+        "path": "references/best-practices.md",
+        "before_sha256": null,
+        "after_sha256": "4badbaab5a860c0a136677e98c769d0a9c1d8c2789f8483b7a369698bf0159b6"
+      },
+      {
+        "path": "references/configuration-wrangler-jsonc.md",
+        "before_sha256": null,
+        "after_sha256": "847f13953da9f7f741f5989f1bef4f87ecba46da8b4c679ae5a943f952401668"
+      },
+      {
+        "path": "references/containers.md",
+        "before_sha256": null,
+        "after_sha256": "21cf29eae484e44973c10f3acbf651cf5d6d5f754292ba99ebca0921609fbaa1"
+      },
+      {
+        "path": "references/d1-sql-database.md",
+        "before_sha256": null,
+        "after_sha256": "df6cc4193d59eaa93d38407ba7b318904d15e44fe371965de3c09a281b64f78a"
+      },
+      {
+        "path": "references/deployment.md",
+        "before_sha256": null,
+        "after_sha256": "27a0285f4e532591c59dbc6c476fea61a367fa3d80f428064eacfb7dd56824f7"
+      },
+      {
+        "path": "references/hyperdrive-database-accelerator.md",
+        "before_sha256": null,
+        "after_sha256": "d19a24c2797509e6d4b8ea74b1152766dd48aa32050d475ad39311957c30307c"
+      },
+      {
+        "path": "references/kv-key-value-store.md",
+        "before_sha256": null,
+        "after_sha256": "a497c7d09ba11ef439af8398e8f4039006b87528e60d839593205b1731f12c90"
+      },
+      {
+        "path": "references/local-development.md",
+        "before_sha256": null,
+        "after_sha256": "9f379462bb1f0174b2a0dbbfced1579096e804a2c39d85e293545c21aa7f4037"
+      },
+      {
+        "path": "references/observability.md",
+        "before_sha256": null,
+        "after_sha256": "99d4ad13cbdcaf3464354c1f6bf6b2726c4b34d1dfd4b9fd19d6d704daee7019"
+      },
+      {
+        "path": "references/pages-frontend-deployment.md",
+        "before_sha256": null,
+        "after_sha256": "81df2c9c039ed8e6a25aa79650cb075f53d1ccbb293502e6e24d2ed2db98a171"
+      },
+      {
+        "path": "references/pipelines.md",
+        "before_sha256": null,
+        "after_sha256": "99ca6d200478811e4c34af5232bdacd2ab82c4e37b0783c6643ccd0e69a32637"
+      },
+      {
+        "path": "references/queues.md",
+        "before_sha256": null,
+        "after_sha256": "4113b42d26edeb686e89d9fcf27d25bfc6c21c186f748c77832f62eb4653c6f1"
+      },
+      {
+        "path": "references/quick-reference-core-commands.md",
+        "before_sha256": null,
+        "after_sha256": "7eccbdf8c52005e44d31155c4e76b6784de76fe440aba5ffb6a3cec981498a04"
+      },
+      {
+        "path": "references/quick-start-new-worker.md",
+        "before_sha256": null,
+        "after_sha256": "ef558e6609169203b5e004fb27c5e75259c00d4368ccceef218e0b9fd82c0a28"
+      },
+      {
+        "path": "references/r2-object-storage.md",
+        "before_sha256": null,
+        "after_sha256": "cf32c5673585562f5220fd757099ba0ee441f22b6683e8f7bd14f517fd0575ef"
+      },
+      {
+        "path": "references/secrets-store.md",
+        "before_sha256": null,
+        "after_sha256": "dfc7c85014cfbf8b2b29f4bd17b8af808425b6433a2bfd55efec773f5290bd5d"
+      },
+      {
+        "path": "references/testing.md",
+        "before_sha256": null,
+        "after_sha256": "3f12b0e3e7d92d30fe2591a03a73928c1dded4f586c27b63cd00b0ac1b3752c3"
+      },
+      {
+        "path": "references/troubleshooting.md",
+        "before_sha256": null,
+        "after_sha256": "1b5154bb87385d9aeda46ee837a845384edf80d42897b16e5d82a833bd60fa63"
+      },
+      {
+        "path": "references/vectorize-vector-database.md",
+        "before_sha256": null,
+        "after_sha256": "f01f404ad4f3b8cd653c929e55769baf996e92bcc42af72db5ea7ecd5d62bde6"
+      },
+      {
+        "path": "references/workers-ai.md",
+        "before_sha256": null,
+        "after_sha256": "d4d68958c5c198eb4b1724f8acf35f1c120ed7837dc035ed248f7bb4924171dc"
+      },
+      {
+        "path": "references/workflows.md",
+        "before_sha256": null,
+        "after_sha256": "780a4896b136c23e460841bae5ad7640b0caa5d78fcab71dfb71dde42ee185ae"
+      }
+    ]
+  },
+  {
+    "skill": "turnstile-spin",
+    "files": [
+      {
+        "path": "SKILL.md",
+        "before_sha256": "0d8df415c594c96ca5a4d393b70681d95d92365465e0eb14af3ab2eaa76d800b",
+        "after_sha256": "b8edb87e5334615ac768241f74b1986100f8957a39fecf8cd3c78df843c86d68"
+      },
+      {
+        "path": "references/create-widget.md",
+        "before_sha256": null,
+        "after_sha256": "65372ab8147b7dd4ebf291b8a3e0c6dd8d748b66abad69027820a9f5dc123730"
+      },
+      {
+        "path": "references/edge-cases.md",
+        "before_sha256": null,
+        "after_sha256": "7af9c0ca89d8703ef580d8cbbdb77752185804da06a56cf7f4d67f8687a8965a"
+      },
+      {
+        "path": "references/existing-widget.md",
+        "before_sha256": null,
+        "after_sha256": "fa5f5a5822f85c9e2d8f08a2df013e04fe34764a1dcedfb59a5eb1a8e47b827d"
+      },
+      {
+        "path": "references/frontend-contract.md",
+        "before_sha256": null,
+        "after_sha256": "0066c43c97c062db7f1ecd781c9411c0935b31000dd1e0a5effdd85e4cbd2a26"
+      },
+      {
+        "path": "references/migration.md",
+        "before_sha256": null,
+        "after_sha256": "e5bca3a000b633107047d2b74a9e6bc06038df520c6d4714204ff13bca45e79b"
+      }
+    ]
+  },
+  {
+    "skill": "web-perf",
+    "files": [
+      {
+        "path": "SKILL.md",
+        "before_sha256": "94c5cb37766676a8321a82861d2ac1072d3dd0ef612f0c946792014ad48fb0c2",
+        "after_sha256": "f24b5d9fdd5242ef2ce1ce52fc36b24787aa0273a7a7117f71862dd0e342309c"
+      }
+    ]
+  },
+  {
+    "skill": "cloudflare",
+    "files": [
+      {
+        "path": "SKILL.md",
+        "before_sha256": "89bcccbb0b6dc77bec5e348f54a5ed8f1943d6ce56c33231a71fd2cd6bb05714",
+        "after_sha256": "66026d216b33729719a1882505cdde628aa76f7e41f15220b4e257ebb5e94d34"
+      }
+    ]
+  },
+  {
+    "skill": "agents-sdk",
+    "files": [
+      {
+        "path": "SKILL.md",
+        "before_sha256": "a05244d3cfb23330daff956ec28a990241f5dbbe489cd7fd6489c8f76bb60877",
+        "after_sha256": "5c6a138e15c086219832b1e3b8378ccea0f0d551bbd6d8fde4b6cb1c118a501d"
+      }
+    ]
+  },
+  {
+    "skill": "workers-best-practices",
+    "files": [
+      {
+        "path": "SKILL.md",
+        "before_sha256": "099432ff265ff6080327ef0b392c118b835d2a5bda98a7de07e1afd115ed6458",
+        "after_sha256": "2d552dbfd0a8b4e511ee76f1a0a3271bee40cf0d6da705fe1123124b09ae40cd"
+      }
+    ]
+  },
+  {
+    "skill": "durable-objects",
+    "files": [
+      {
+        "path": "SKILL.md",
+        "before_sha256": "cd6797cb18f3ae8f721dfd2e5cb27b73a0aa8636683f1a38163dab2fd51a8dfb",
+        "after_sha256": "f9626d782c9d45f0f6414c5ad1915b63639ad96771aa1804d33370e2435a2926"
+      }
+    ]
+  },
+  {
+    "skill": "cloudflare-email-service",
+    "files": [
+      {
+        "path": "SKILL.md",
+        "before_sha256": "a62531900a08f9f6c352061d42e8b10a35009f5e1c6f91bbf18752feedad5a79",
+        "after_sha256": "812c93959604d86135c91f937c10df0532143c14d2ba0db7facde9cbf6764aac"
+      }
+    ]
+  }
+]
