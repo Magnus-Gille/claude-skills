@@ -79,7 +79,7 @@ def validate_receipt(receipt: Any, expected_head: Any, required: Any) -> dict[st
     if not isinstance(rollup, list) or not rollup:
         raise ReceiptError("statusCheckRollup must be a non-empty array")
 
-    check_names: list[str] = []
+    matches: dict[str, int] = {name: 0 for name in required_names}
     for item in rollup:
         if not isinstance(item, dict):
             raise ReceiptError("statusCheckRollup contains a malformed entry")
@@ -88,28 +88,32 @@ def validate_receipt(receipt: Any, expected_head: Any, required: Any) -> dict[st
             name = item.get("name")
             if not isinstance(name, str) or not name:
                 raise ReceiptError("CheckRun name is missing or malformed")
-            if item.get("status") != "COMPLETED":
-                raise ReceiptError("a CheckRun is pending or incomplete")
-            if item.get("conclusion") != "SUCCESS":
-                raise ReceiptError("a CheckRun did not conclude successfully")
+            status = item.get("status")
+            conclusion = item.get("conclusion")
+            if not isinstance(status, str) or not isinstance(conclusion, str):
+                raise ReceiptError("CheckRun status or conclusion is malformed")
+            passed = status == "COMPLETED" and conclusion == "SUCCESS"
+            if name in matches and not passed:
+                raise ReceiptError("a required CheckRun is pending or unsuccessful")
         elif typename == "StatusContext":
             name = item.get("context")
             if not isinstance(name, str) or not name:
                 raise ReceiptError("StatusContext context is missing or malformed")
-            if item.get("state") != "SUCCESS":
-                raise ReceiptError("a StatusContext is not successful")
+            state = item.get("state")
+            if not isinstance(state, str):
+                raise ReceiptError("StatusContext state is malformed")
+            if name in matches and state != "SUCCESS":
+                raise ReceiptError("a required StatusContext is not successful")
         else:
             raise ReceiptError("statusCheckRollup contains an unsupported entry type")
-        check_names.append(name)
 
-    if len(set(check_names)) != len(check_names):
-        raise ReceiptError("statusCheckRollup contains an ambiguous duplicate check name")
-    counts = {name: check_names.count(name) for name in required_names}
-    missing_or_ambiguous = [name for name, count in counts.items() if count != 1]
-    if missing_or_ambiguous:
+        if name in matches:
+            matches[name] += 1
+
+    if any(count != 1 for count in matches.values()):
         raise ReceiptError("each required check name must occur exactly once")
 
-    return {"status": "PASS", "head": head, "checknames": check_names}
+    return {"status": "PASS", "head": head, "checknames": required_names}
 
 
 def _read_receipt(source: str) -> Any:

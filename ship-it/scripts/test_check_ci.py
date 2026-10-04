@@ -90,6 +90,23 @@ class CheckCiCliTests(unittest.TestCase):
         self.assertIn("--expected-head", result.stdout)
         self.assertIn("--required", result.stdout)
 
+    def test_expected_head_and_required_are_required_cli_arguments(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            receipt_path = Path(directory) / "receipt.json"
+            receipt_path.write_text(json.dumps(receipt(check_run())), encoding="utf-8")
+            for arguments in (
+                [str(receipt_path), "--required", "build"],
+                [str(receipt_path), "--expected-head", HEAD],
+            ):
+                result = subprocess.run(
+                    [sys.executable, str(SCRIPT), *arguments],
+                    text=True,
+                    capture_output=True,
+                    check=False,
+                )
+                self.assertNotEqual(result.returncode, 0)
+                self.assertTrue(result.stderr.startswith("BLOCKED:"), result.stderr)
+
     def test_required_names_must_be_nonempty_and_unique(self) -> None:
         value = receipt(check_run())
         self.assert_blocked(value, "")
@@ -125,11 +142,45 @@ class CheckCiCliTests(unittest.TestCase):
         self.assert_blocked(receipt(check_run("build"), check_run("build")), "build")
         self.assert_blocked(receipt(check_run("build"), status_context("build")), "build")
 
+    def test_optional_pending_failure_and_duplicate_contexts_are_ignored(self) -> None:
+        result = self.run_cli(
+            receipt(
+                check_run("build"),
+                check_run("optional", status="IN_PROGRESS"),
+                check_run("optional", status="COMPLETED", conclusion="FAILURE"),
+                status_context("optional-context", state="PENDING"),
+                status_context("optional-context", state="ERROR"),
+            ),
+            "build",
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout)["checknames"], ["build"])
+
     def test_malformed_rollup_entries_and_json_are_blocked(self) -> None:
         self.assert_blocked(receipt({}), "build")
+        for malformed in (None, [], "text", 7):
+            self.assert_blocked(receipt(malformed), "build")
         self.assert_blocked(receipt({"__typename": "Unknown", "name": "build"}), "build")
         self.assert_blocked(receipt({"__typename": "CheckRun", "name": "build"}), "build")
         self.assert_blocked("{not-json", "build")
+
+    def test_missing_receipt_is_blocked_without_echoing_input(self) -> None:
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(SCRIPT),
+                "/path/that/does/not/exist/receipt.json",
+                "--expected-head",
+                HEAD,
+                "--required",
+                "build",
+            ],
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertTrue(result.stderr.startswith("BLOCKED: could not read receipt"), result.stderr)
 
     def test_failure_does_not_echo_receipt_content(self) -> None:
         secret = "do-not-echo-this-receipt-value"
