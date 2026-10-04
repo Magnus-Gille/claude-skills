@@ -13,6 +13,44 @@ model through an existing native route. A second agent running the conductor's
 own model is not cross-model review. Respect an explicitly selected model;
 never replace it silently. Do not add providers, credentials or intermediaries.
 
+## Default review models
+
+These are Magnus's review defaults, not implementation-worker defaults. An
+explicit model/effort choice for the current task overrides them.
+
+| Review route | Model family | Requested effort |
+|---|---|---|
+| Claude / Anthropic | Latest available Claude Opus | `xhigh` |
+| Codex / OpenAI | Latest available Codex Sol | `xhigh` |
+
+Resolve the concrete model at review time from the active provider/harness
+catalogue and account availability; keep the skill version-independent. For a
+Codex conductor, prefer the Claude default; for a Claude conductor, prefer the
+Codex default. In Pi, choose the default from a provider different from the
+conductor's actual model provider. A default that resolves to the conductor's
+own model does not meet independence: use the previously authorized safe
+independent-model fallback and disclose the departure from the default.
+
+On Claude Code, use `--model opus --effort xhigh` only after confirming that
+`opus` resolves to the latest available Opus on the configured route; provider
+pins or an older client can change its resolution. On Codex CLI, pass the
+resolved Sol ID with `--model` and `-c 'model_reasoning_effort="xhigh"'`;
+`Sol` is a family preference, not an invented CLI alias. Native review calls
+must set the resolved model and `xhigh` explicitly when supported.
+
+Check that the route actually supports `xhigh` and record requested versus
+applied effort alongside model identity. Do not silently accept an effort cap,
+model fallback or lower-effort default. If the requested combination cannot
+run, try the other qualified configured review default when it preserves
+independence; otherwise report the unavailable combination and request a
+specific alternative. These selection flags do not satisfy the headless
+permission boundary below or authorize global configuration changes.
+
+Current syntax references: [Claude model and effort settings](https://code.claude.com/docs/en/model-config)
+and [Codex reasoning-effort configuration](https://learn.chatgpt.com/docs/config-file/config-reference).
+
+## Review capability boundary
+
 Use native delegation when it supplies the needed independent model and fits
 the scope. A separate headless CLI loads its own configuration: verify effective
 filesystem access, tools/MCP, network and approval policy before launching.

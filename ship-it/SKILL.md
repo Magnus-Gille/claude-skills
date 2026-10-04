@@ -38,7 +38,8 @@ merge and rollout. Resume a partly completed delivery from its verified state.
    caused by the change; identify unrelated failures without silently widening
    scope or claiming every warning has been resolved.
 2. **Independent model review.** After deterministic checks pass, freeze the
-   candidate diff and relevant source. Follow [review.md](references/review.md).
+   candidate diff and relevant source. Follow [review.md](references/review.md)
+   for the latest Opus/Sol review defaults, both at `xhigh`, and route constraints.
    Prefer another provider; a genuinely different independent model is an
    acceptable fallback. Validate findings as hypotheses, fix grounded defects
    with regression evidence, and explain declined findings. Material subsequent
