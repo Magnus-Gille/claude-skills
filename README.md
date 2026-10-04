@@ -22,6 +22,7 @@ After install, restart Claude Code (or wait for the next session) and the skills
 
 | Skill | What it does |
 |-------|--------------|
+| `/ship-it` | Deliver a scoped task through independent model review, green CI/CD, merge and verified production; shared by Codex, Claude Code and Pi. |
 | `/close` | Session closing checklist — Git/worktree audit, handoff persistence, cleanup, optional Munin sync, and one deterministic cross-agent report format. |
 | `/commit` | Standardized git commit workflow: author verification, diff review, security check, conventional message, push. |
 | `/debate` | Adversarial debate against a cross-model reviewer (Codex or Antigravity/agy) to stress-test a draft, plan, or design before finalizing. Multi-round critique with self-review and summary. Backend chosen via `--model codex\|agy` (defaults to codex). |
@@ -44,6 +45,11 @@ Some skills shell out to external CLIs or MCP servers:
 The remaining skills (`close`, `commit`, `eli5`) only need standard `git` and Claude Code itself.
 
 ## Codex companion skills
+
+`ship-it/` is one portable source for Codex, Claude Code and Pi. For Codex, link the
+complete folder to `~/.agents/skills/ship-it`; for Pi, link it to
+`~/.pi/agent/skills/ship-it`. Claude discovers the root folder through the existing
+`~/.claude/skills` repository link. Keep references, scripts and metadata together.
 
 `close/` is shared by Claude and Codex. Point both installations to this same tracked folder so the
 workflow and final report renderer cannot drift:
