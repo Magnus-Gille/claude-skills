@@ -28,6 +28,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
+          fetch-depth: 2
           persist-credentials: false
 
       - name: Set up Python
@@ -50,4 +51,4 @@ jobs:
           PY
 
       - name: Check diff
-        run: git diff --check
+        run: git diff --check HEAD^1 HEAD
