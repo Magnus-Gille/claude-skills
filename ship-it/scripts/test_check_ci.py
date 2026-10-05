@@ -164,6 +164,20 @@ class CheckCiCliTests(unittest.TestCase):
         self.assert_blocked(receipt({"__typename": "CheckRun", "name": "build"}), "build")
         self.assert_blocked("{not-json", "build")
 
+    def test_json_with_oversized_integer_is_blocked_without_traceback(self) -> None:
+        raw = '{"oversized":' + "9" * 4301 + "}"
+        result = self.run_cli(raw, "build")
+        self.assertEqual(result.returncode, 2)
+        self.assertEqual(result.stdout, "")
+        self.assertEqual(result.stderr, "BLOCKED: receipt is not valid JSON\n")
+
+    def test_deeply_nested_json_is_blocked_without_traceback(self) -> None:
+        raw = "[" * 1100 + "0" + "]" * 1100
+        result = self.run_cli(raw, "build")
+        self.assertEqual(result.returncode, 2)
+        self.assertEqual(result.stdout, "")
+        self.assertEqual(result.stderr, "BLOCKED: receipt is not valid JSON\n")
+
     def test_missing_receipt_is_blocked_without_echoing_input(self) -> None:
         result = subprocess.run(
             [

@@ -123,7 +123,7 @@ def _read_receipt(source: str) -> Any:
         raise ReceiptError("could not read receipt") from None
     try:
         return json.loads(raw)
-    except (json.JSONDecodeError, TypeError):
+    except (ValueError, RecursionError, TypeError):
         raise ReceiptError("receipt is not valid JSON") from None
 
 
