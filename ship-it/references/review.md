@@ -39,16 +39,22 @@ resolved Sol ID with `--model` and `-c 'model_reasoning_effort="xhigh"'`;
 `Sol` is a family preference, not an invented CLI alias. Native review calls
 must set the resolved model and `xhigh` explicitly when supported.
 
-Check that the route actually supports `xhigh` and record requested versus
-applied effort alongside model identity. Do not silently accept an effort cap,
-model fallback or lower-effort default. If the requested combination cannot
-run, try the other qualified configured review default when it preserves
-independence, then a safely scoped genuinely different model at the requested
-effort through an existing route. This fallback needs no new model-selection
-permission unless the task has an explicit override that forbids it. If no
-qualified independent route supports the requested effort, report the unavailable
-combination and request a specific alternative. These selection flags do not
-satisfy the headless
+Check that the route supports the selected effort (`xhigh` for these defaults)
+and record requested versus applied effort alongside model identity. Do not
+silently accept an effort cap, model fallback or lower-effort default.
+
+For an explicit per-task model or effort, follow that choice. If it cannot run,
+request an alternative unless the owner already explicitly authorized fallback
+for that task. The general default-fallback permission does not override it.
+
+For a default-derived review, choose safely scoped existing routes at `xhigh`,
+considering qualified models from another provider before same-provider models.
+Prefer the Opus/Sol defaults among qualified candidates. When they cannot run,
+a genuinely different independent model is already authorized; this needs no
+new model-selection permission. Use a same-provider independent model only when
+no qualified different-provider route is available. If no qualified independent
+route supports the selected effort, report the unavailable combination and
+request a specific alternative. Selection flags never satisfy the headless
 permission boundary below or authorize global configuration changes.
 
 Current syntax references: [Claude model and effort settings](https://code.claude.com/docs/en/model-config)
