@@ -28,8 +28,9 @@ catalogue and account availability; keep the skill version-independent. For a
 Codex conductor, prefer the Claude default; for a Claude conductor, prefer the
 Codex default. In Pi, choose the default from a provider different from the
 conductor's actual model provider. A default that resolves to the conductor's
-own model does not meet independence: use the previously authorized safe
-independent-model fallback and disclose the departure from the default.
+own model does not meet independence: use the safe independent-model fallback
+authorized above and disclose the departure from the default. The same fallback
+is already authorized when either preferred default is unavailable.
 
 On Claude Code, use `--model opus --effort xhigh` only after confirming that
 `opus` resolves to the latest available Opus on the configured route; provider
@@ -42,8 +43,12 @@ Check that the route actually supports `xhigh` and record requested versus
 applied effort alongside model identity. Do not silently accept an effort cap,
 model fallback or lower-effort default. If the requested combination cannot
 run, try the other qualified configured review default when it preserves
-independence; otherwise report the unavailable combination and request a
-specific alternative. These selection flags do not satisfy the headless
+independence, then a safely scoped genuinely different model at the requested
+effort through an existing route. This fallback needs no new model-selection
+permission unless the task has an explicit override that forbids it. If no
+qualified independent route supports the requested effort, report the unavailable
+combination and request a specific alternative. These selection flags do not
+satisfy the headless
 permission boundary below or authorize global configuration changes.
 
 Current syntax references: [Claude model and effort settings](https://code.claude.com/docs/en/model-config)
