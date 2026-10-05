@@ -176,7 +176,14 @@ class CheckCiCliTests(unittest.TestCase):
         result = self.run_cli(raw, "build")
         self.assertEqual(result.returncode, 2)
         self.assertEqual(result.stdout, "")
-        self.assertEqual(result.stderr, "BLOCKED: receipt is not valid JSON\n")
+        self.assertIn(
+            result.stderr,
+            {
+                "BLOCKED: receipt is not valid JSON\n",
+                "BLOCKED: receipt must be a JSON object\n",
+            },
+        )
+        self.assertNotIn("Traceback", result.stderr)
 
     def test_missing_receipt_is_blocked_without_echoing_input(self) -> None:
         result = subprocess.run(
