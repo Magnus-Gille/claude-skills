@@ -14,13 +14,17 @@ merge and rollout. Resume a partly completed delivery from its verified state.
 - Read the owning repository's `AGENTS.md`, deployment contract and current
   handoff; orient in persistent memory when the owner's instructions require it.
   Record the task, repository, intended base, acceptance criteria, exclusions,
-  required checks and deployment target. Ask early about a material ambiguity;
-  continue independent work while awaiting its answer.
+  required checks and deployment target. Discover whether push, merge, tag or
+  release publication triggers deployment; classify that trigger as the rollout
+  before executing it. Ask early about a material ambiguity; continue independent
+  work while awaiting its answer.
 - An explicit full-pipeline request covers the requested publication, PR,
   readiness and merge stages in the identified repository, subject to applicable
   policies. Preview the exact target and concise change; reuse existing
   authorization instead of asking again at every stage. Automatic selection of
-  this skill does not turn a generic bug-fix request into rollout authorization.
+  this skill grants no publication, merge or rollout authority beyond the
+  owner's existing explicit authorization. A deployment-triggering merge must
+  satisfy the same approval and preparation boundaries as a deploy command.
 - The skill does not waive owner, repository or harness boundaries. Prepare the
   concrete release, backup, verification and rollback before asking for any
   required production confirmation. Execute without another question when a
@@ -44,8 +48,10 @@ merge and rollout. Resume a partly completed delivery from its verified state.
    acceptable fallback. Validate findings as hypotheses, fix grounded defects
    with regression evidence, and explain declined findings. Material subsequent
    changes require renewed review of the affected scope unless an active
-   specialized workflow prescribes a different review cycle. Tests/docs-only
-   follow-ups may retain the original review with a recorded conductor check.
+   specialized workflow prescribes a different review cycle. Nonbehavioral
+   explanatory notes or test additions may retain review with a recorded
+   conductor check; changes to skill/prompt instructions, CI gates or test
+   expectations require review of that changed behavior.
 3. **Publish and obtain green CI/CD.** Inspect the complete outgoing diff, push
    the task branch normally and create/update the scoped PR into the discovered
    base. Attach a created PR when the harness supports it. Read back its exact
@@ -54,7 +60,12 @@ merge and rollout. Resume a partly completed delivery from its verified state.
    empty rollup is insufficient. Diagnose failures before retrying. Retry a
    demonstrated transient failure once; a repeated condition needs investigation
    and a bounded correction or an explicit blocker, not endless reruns.
-4. **Merge the accepted revision.** Immediately recheck head, current base,
+4. **Merge the accepted revision.** If merge triggers deployment, complete
+   the rollout preparation and any exact approval in step 5 first; the approved
+   action is the trigger itself. Bind the deployable revision through the repo
+   mechanism before triggering it. If that binding cannot be established, leave
+   the trigger pending instead of merging and asking afterward. Immediately
+   recheck head, current base,
    review dispositions, required checks and mergeability. Mark ready if needed,
    then use the provider's normal merge with a head-matching guard. Never bypass
    checks or force-push. Verify the merge receipt, resulting tree/parents as
@@ -67,8 +78,11 @@ merge and rollout. Resume a partly completed delivery from its verified state.
    recoverable backup and rollback appropriate to this change. Present the
    repository, exact revision, target, deploy command, verification command and
    rollback for any required just-in-time approval; then run only that approved
-   rollout. Follow the owning deploy contract, including its environment/data
-   preservation and client/server scope.
+   rollout. For an automatic rollout, perform this preparation before the
+   publication/merge/tag/release trigger and then verify it in step 6; do not
+   repeat deployment just to satisfy the numbered sequence. Follow the owning
+   deploy contract, including environment/data preservation and client/server
+   scope.
 6. **Verify production.** Prove both artifact identity and running behavior:
    expected source/dependency hashes or equivalent platform receipt, service
    health, relevant authenticated/application probes, migrations and workers.

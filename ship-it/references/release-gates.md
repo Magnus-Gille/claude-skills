@@ -25,8 +25,11 @@ resolve duplicate names from current provider evidence before using the helper.
 Include additional configured jobs when the task's green-CI acceptance requires
 them. Ignored optional contexts are not proven successful; report relevant
 failures separately rather than describing only a passing subset as all green.
-The helper does not discover policy, prove the input is fresh/authentic, check
-the base, or authorize any mutation. Independently re-fetch base/head and check
+The helper checks names only; verify each selected entry's workflow or status
+publisher against provider policy before accepting it. If names cannot be
+unambiguously mapped, use the provider's qualified check evidence instead.
+It does not discover policy, prove freshness/authenticity or publisher identity,
+check the base, or authorize mutation. Independently re-fetch base/head and check
 mergeability immediately before normal guarded merge. Other providers use their
 equivalent fresh immutable evidence; GitHub is not required by this skill.
 
@@ -37,6 +40,15 @@ base change requires evaluating its effect on the accepted scope; do not merely
 assume the resulting tree equals a previously reviewed head.
 
 ## Production
+
+Determine whether push, merge, tag or release publication automatically deploys
+before any such action. That action is the production trigger: finish backup,
+verification, rollback and any required exact approval before it, including the
+trigger command and immutable deployable revision in that approval. Obtain that
+revision binding through the repo's fail-closed mechanism; if the future deployed
+revision cannot be bound before the trigger, keep the trigger pending. Do not
+merge first and seek approval afterward, change deployment configuration to
+avoid the boundary, or execute a second rollout after a successful automatic one.
 
 Obtain the release from the accepted provider/release receipt, not whatever the
 current checkout happens to contain. Bind the deploy source and deployed
