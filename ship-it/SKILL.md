@@ -72,9 +72,11 @@ merge and rollout. Resume a partly completed delivery from its verified state.
    appropriate to the chosen merge method, and intended issue closure. Base
    drift must be evaluated before integration; preserve the existing handoff if
    acceptance needs to be repeated.
-5. **Prepare and deploy.** Bind an isolated source to the accepted immutable
-   merge/release receipt, using the repo's fail-closed deploy mechanism rather
-   than deriving the release from the current checkout. Prepare and verify a
+5. **Prepare and deploy.** Bind an isolated source to an accepted immutable
+   revision/artifact through the repo's fail-closed mechanism. For a manual
+   post-merge rollout, use the accepted merge/release receipt; for an automatic
+   rollout, use the verified candidate/artifact binding available before its
+   trigger. Never derive the release from the current checkout. Prepare and verify a
    recoverable backup and rollback appropriate to this change. Present the
    repository, exact revision, target, deploy command, verification command and
    rollback for any required just-in-time approval; then run only that approved

@@ -50,8 +50,10 @@ revision cannot be bound before the trigger, keep the trigger pending. Do not
 merge first and seek approval afterward, change deployment configuration to
 avoid the boundary, or execute a second rollout after a successful automatic one.
 
-Obtain the release from the accepted provider/release receipt, not whatever the
-current checkout happens to contain. Bind the deploy source and deployed
+For an automatic rollout, use the accepted pre-trigger candidate/artifact
+binding; for a manual post-merge rollout, use the accepted merge/release receipt.
+Never obtain the release from whatever the current checkout happens to contain.
+Bind the deploy source and deployed
 artifact to that immutable revision through the owning project's deployment
 tool. Build and inspect outgoing artifact/configuration scope before approval.
 
