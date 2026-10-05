@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ship it"
+  short_description: "Från uppgift till granskad och verifierad produktion"
+  default_prompt: "Använd $ship-it för att lösa den här repo-uppgiften hela vägen till oberoende modellgranskning, grön CI/CD, merge och verifierad deploy."
