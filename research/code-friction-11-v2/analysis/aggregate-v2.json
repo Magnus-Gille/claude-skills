@@ -1,0 +1,1698 @@
+{
+  "deduplicated_observations": {
+    "occurrences": [
+      {
+        "claims": [
+          "The target and focused check are immediately identified by one production symbol and one test."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "locate"
+        ],
+        "evaluation_ids": [
+          "v2a-eval-s1-7c1e"
+        ],
+        "evidence_refs": [
+          "S1-A1",
+          "S1-A2"
+        ],
+        "observation_ids": [
+          "v2a-s1-o1"
+        ],
+        "occurrence_id": "v2a-s1-f1",
+        "polarities": [
+          "positive"
+        ],
+        "provenance": [
+          {
+            "evaluation_id": "v2a-eval-s1-7c1e",
+            "observation_id": "v2a-s1-o1",
+            "source": {
+              "attempt_id": "S1-attempt-1",
+              "kind": "direct",
+              "parent_observation_id": null
+            }
+          }
+        ],
+        "scenario_id": "S1-straightforward",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The requested rename has four connected locations across configuration, retry handling, request wiring, and tests."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "locate"
+        ],
+        "evaluation_ids": [
+          "v2a-eval-s2-4b8d"
+        ],
+        "evidence_refs": [
+          "S2-A1",
+          "S2-A2",
+          "S2-A3",
+          "S2-A4"
+        ],
+        "observation_ids": [
+          "v2a-s2-o1"
+        ],
+        "occurrence_id": "v2a-s2-f1",
+        "polarities": [
+          "negative"
+        ],
+        "provenance": [
+          {
+            "evaluation_id": "v2a-eval-s2-4b8d",
+            "observation_id": "v2a-s2-o1",
+            "source": {
+              "attempt_id": "S2-attempt-1",
+              "kind": "direct",
+              "parent_observation_id": null
+            }
+          }
+        ],
+        "scenario_id": "S2-scattered",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The supplied test checks only the default loader value, so the renamed variable and request path need additional focused coverage."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "verify"
+        ],
+        "evaluation_ids": [
+          "v2a-eval-s2-4b8d"
+        ],
+        "evidence_refs": [
+          "S2-A3",
+          "S2-A4"
+        ],
+        "observation_ids": [
+          "v2a-s2-o2"
+        ],
+        "occurrence_id": "v2a-s2-f2",
+        "polarities": [
+          "negative"
+        ],
+        "provenance": [
+          {
+            "evaluation_id": "v2a-eval-s2-4b8d",
+            "observation_id": "v2a-s2-o2",
+            "source": {
+              "attempt_id": "S2-attempt-1",
+              "kind": "direct",
+              "parent_observation_id": null
+            }
+          }
+        ],
+        "scenario_id": "S2-scattered",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The normalization symbol feeds separate cache and audit identity consumers that both must be found and preserved."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "locate"
+        ],
+        "evaluation_ids": [
+          "v2a-eval-s3-91af"
+        ],
+        "evidence_refs": [
+          "S3-A1",
+          "S3-A2",
+          "S3-A3"
+        ],
+        "observation_ids": [
+          "v2a-s3-o1"
+        ],
+        "occurrence_id": "v2a-s3-f1",
+        "polarities": [
+          "negative"
+        ],
+        "provenance": [
+          {
+            "evaluation_id": "v2a-eval-s3-91af",
+            "observation_id": "v2a-s3-o1",
+            "source": {
+              "attempt_id": "S3-attempt-1",
+              "kind": "direct",
+              "parent_observation_id": null
+            }
+          }
+        ],
+        "scenario_id": "S3-hidden-dependency",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "Compatibility has two simultaneous rules: preserve colon removal for legacy IDs and preserve slash characters for future IDs across both identities."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "understand"
+        ],
+        "evaluation_ids": [
+          "v2a-eval-s3-91af"
+        ],
+        "evidence_refs": [
+          "S3-A1",
+          "S3-A2",
+          "S3-A3"
+        ],
+        "observation_ids": [
+          "v2a-s3-o2"
+        ],
+        "occurrence_id": "v2a-s3-f2",
+        "polarities": [
+          "negative"
+        ],
+        "provenance": [
+          {
+            "evaluation_id": "v2a-eval-s3-91af",
+            "observation_id": "v2a-s3-o2",
+            "source": {
+              "attempt_id": "S3-attempt-1",
+              "kind": "direct",
+              "parent_observation_id": null
+            }
+          }
+        ],
+        "scenario_id": "S3-hidden-dependency",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The current focused test checks a legacy colon cache key but leaves slash preservation and audit identity untested."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "verify"
+        ],
+        "evaluation_ids": [
+          "v2a-eval-s3-91af"
+        ],
+        "evidence_refs": [
+          "S3-A3",
+          "S3-A4"
+        ],
+        "observation_ids": [
+          "v2a-s3-o3"
+        ],
+        "occurrence_id": "v2a-s3-f3",
+        "polarities": [
+          "negative"
+        ],
+        "provenance": [
+          {
+            "evaluation_id": "v2a-eval-s3-91af",
+            "observation_id": "v2a-s3-o3",
+            "source": {
+              "attempt_id": "S3-attempt-1",
+              "kind": "direct",
+              "parent_observation_id": null
+            }
+          }
+        ],
+        "scenario_id": "S3-hidden-dependency",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "Verification is blocked by the explicitly missing corp-runtime binary rather than by a code location problem."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "verify"
+        ],
+        "evaluation_ids": [
+          "v2a-eval-s4-2e73"
+        ],
+        "evidence_refs": [
+          "S4-A2",
+          "S4-A3"
+        ],
+        "observation_ids": [
+          "v2a-s4-o1"
+        ],
+        "occurrence_id": "v2a-s4-f1",
+        "polarities": [
+          "negative"
+        ],
+        "provenance": [
+          {
+            "evaluation_id": "v2a-eval-s4-2e73",
+            "observation_id": "v2a-s4-o1",
+            "source": {
+              "attempt_id": "S4-attempt-1",
+              "kind": "direct",
+              "parent_observation_id": null
+            }
+          }
+        ],
+        "scenario_id": "S4-unavailable-test-env",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The partial edit leaves the promise lifecycle incomplete, requiring cleanup after both successful and failed settlement."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "understand"
+        ],
+        "evaluation_ids": [
+          "v2a-eval-s5-c6a4"
+        ],
+        "evidence_refs": [
+          "S5-A1"
+        ],
+        "observation_ids": [
+          "v2a-s5-o1"
+        ],
+        "occurrence_id": "v2a-s5-f1",
+        "polarities": [
+          "negative"
+        ],
+        "provenance": [
+          {
+            "evaluation_id": "v2a-eval-s5-c6a4",
+            "observation_id": "v2a-s5-o1",
+            "source": {
+              "attempt_id": "S5-attempt-1",
+              "kind": "direct",
+              "parent_observation_id": null
+            }
+          }
+        ],
+        "scenario_id": "S5-failed-aborted",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The available regression test covers a resolved later retry but does not exercise rejected dispatch cleanup or concurrent duplicate sharing."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "verify"
+        ],
+        "evaluation_ids": [
+          "v2a-eval-s5-c6a4"
+        ],
+        "evidence_refs": [
+          "S5-A1",
+          "S5-A2"
+        ],
+        "observation_ids": [
+          "v2a-s5-o2"
+        ],
+        "occurrence_id": "v2a-s5-f2",
+        "polarities": [
+          "negative"
+        ],
+        "provenance": [
+          {
+            "evaluation_id": "v2a-eval-s5-c6a4",
+            "observation_id": "v2a-s5-o2",
+            "source": {
+              "attempt_id": "S5-attempt-1",
+              "kind": "direct",
+              "parent_observation_id": null
+            }
+          }
+        ],
+        "scenario_id": "S5-failed-aborted",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The includeTags rule must be applied consistently in two separate channel branches."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "understand"
+        ],
+        "evaluation_ids": [
+          "v2a-eval-s7b-8a22"
+        ],
+        "evidence_refs": [
+          "S7B-A1"
+        ],
+        "observation_ids": [
+          "v2a-s7b-o1"
+        ],
+        "occurrence_id": "v2a-s7b-f1",
+        "polarities": [
+          "negative"
+        ],
+        "provenance": [
+          {
+            "evaluation_id": "v2a-eval-s7b-8a22",
+            "observation_id": "v2a-s7b-o1",
+            "source": {
+              "attempt_id": "S7-before-attempt-1",
+              "kind": "direct",
+              "parent_observation_id": null
+            }
+          }
+        ],
+        "scenario_id": "S7-before",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The focused test covers only the email default path, leaving SMS and includeTags false behavior to add and check."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "verify"
+        ],
+        "evaluation_ids": [
+          "v2a-eval-s7b-8a22"
+        ],
+        "evidence_refs": [
+          "S7B-A2"
+        ],
+        "observation_ids": [
+          "v2a-s7b-o2"
+        ],
+        "occurrence_id": "v2a-s7b-f2",
+        "polarities": [
+          "negative"
+        ],
+        "provenance": [
+          {
+            "evaluation_id": "v2a-eval-s7b-8a22",
+            "observation_id": "v2a-s7b-o2",
+            "source": {
+              "attempt_id": "S7-before-attempt-1",
+              "kind": "direct",
+              "parent_observation_id": null
+            }
+          }
+        ],
+        "scenario_id": "S7-before",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The shared payloadFor path centralizes channel field selection, making the all-channel default behavior straightforward to trace."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "understand"
+        ],
+        "evaluation_ids": [
+          "v2a-eval-s7a-3f17"
+        ],
+        "evidence_refs": [
+          "S7A-A1"
+        ],
+        "observation_ids": [
+          "v2a-s7a-o1"
+        ],
+        "occurrence_id": "v2a-s7a-f1",
+        "polarities": [
+          "positive"
+        ],
+        "provenance": [
+          {
+            "evaluation_id": "v2a-eval-s7a-3f17",
+            "observation_id": "v2a-s7a-o1",
+            "source": {
+              "attempt_id": "S7-after-attempt-1",
+              "kind": "direct",
+              "parent_observation_id": null
+            }
+          }
+        ],
+        "scenario_id": "S7-after",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The sole focused test covers only email with omitted options, so SMS and tag omission remain unverified."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "verify"
+        ],
+        "evaluation_ids": [
+          "v2a-eval-s7a-3f17"
+        ],
+        "evidence_refs": [
+          "S7A-A2"
+        ],
+        "observation_ids": [
+          "v2a-s7a-o2"
+        ],
+        "occurrence_id": "v2a-s7a-f2",
+        "polarities": [
+          "negative"
+        ],
+        "provenance": [
+          {
+            "evaluation_id": "v2a-eval-s7a-3f17",
+            "observation_id": "v2a-s7a-o2",
+            "source": {
+              "attempt_id": "S7-after-attempt-1",
+              "kind": "direct",
+              "parent_observation_id": null
+            }
+          }
+        ],
+        "scenario_id": "S7-after",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The owning production symbol is singular and explicit."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "locate"
+        ],
+        "evaluation_ids": [
+          "e7c6f4b1-9a2d-4f3c-8b71-0d5e2a6c9148"
+        ],
+        "evidence_refs": [
+          "S1-A1"
+        ],
+        "observation_ids": [
+          "o-s1-locate-01"
+        ],
+        "occurrence_id": "occ-s1-locate",
+        "polarities": [
+          "positive"
+        ],
+        "provenance": [
+          {
+            "evaluation_id": "e7c6f4b1-9a2d-4f3c-8b71-0d5e2a6c9148",
+            "observation_id": "o-s1-locate-01",
+            "source": {
+              "attempt_id": "a-s1-01",
+              "kind": "direct",
+              "parent_observation_id": null
+            }
+          }
+        ],
+        "scenario_id": "S1-straightforward",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The local contract clearly combines blank-name fallback with trimming."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "understand"
+        ],
+        "evaluation_ids": [
+          "e7c6f4b1-9a2d-4f3c-8b71-0d5e2a6c9148"
+        ],
+        "evidence_refs": [
+          "S1-A1"
+        ],
+        "observation_ids": [
+          "o-s1-understand-01"
+        ],
+        "occurrence_id": "occ-s1-understand",
+        "polarities": [
+          "positive"
+        ],
+        "provenance": [
+          {
+            "evaluation_id": "e7c6f4b1-9a2d-4f3c-8b71-0d5e2a6c9148",
+            "observation_id": "o-s1-understand-01",
+            "source": {
+              "attempt_id": "a-s1-01",
+              "kind": "direct",
+              "parent_observation_id": null
+            }
+          }
+        ],
+        "scenario_id": "S1-straightforward",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "A focused deterministic test is supplied for the change."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "verify"
+        ],
+        "evaluation_ids": [
+          "e7c6f4b1-9a2d-4f3c-8b71-0d5e2a6c9148"
+        ],
+        "evidence_refs": [
+          "S1-A2"
+        ],
+        "observation_ids": [
+          "o-s1-verify-01"
+        ],
+        "occurrence_id": "occ-s1-verify",
+        "polarities": [
+          "positive"
+        ],
+        "provenance": [
+          {
+            "evaluation_id": "e7c6f4b1-9a2d-4f3c-8b71-0d5e2a6c9148",
+            "observation_id": "o-s1-verify-01",
+            "source": {
+              "attempt_id": "a-s1-01",
+              "kind": "direct",
+              "parent_observation_id": null
+            }
+          }
+        ],
+        "scenario_id": "S1-straightforward",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The requested rename crosses configuration, retry consumption, request wiring, and test files."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "locate"
+        ],
+        "evaluation_ids": [
+          "b2d9a63e-1f74-4c8a-95e0-7ab3d6f2184c"
+        ],
+        "evidence_refs": [
+          "S2-A1",
+          "S2-A2",
+          "S2-A3",
+          "S2-A4"
+        ],
+        "observation_ids": [
+          "o-s2-locate-01"
+        ],
+        "occurrence_id": "occ-s2-locate",
+        "polarities": [
+          "negative"
+        ],
+        "provenance": [
+          {
+            "evaluation_id": "b2d9a63e-1f74-4c8a-95e0-7ab3d6f2184c",
+            "observation_id": "o-s2-locate-01",
+            "source": {
+              "attempt_id": "a-s2-01",
+              "kind": "direct",
+              "parent_observation_id": null
+            }
+          }
+        ],
+        "scenario_id": "S2-scattered",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "Preserving the effective retry limit requires following the loaded value through request into withRetries."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "understand"
+        ],
+        "evaluation_ids": [
+          "b2d9a63e-1f74-4c8a-95e0-7ab3d6f2184c"
+        ],
+        "evidence_refs": [
+          "S2-A1",
+          "S2-A2",
+          "S2-A3"
+        ],
+        "observation_ids": [
+          "o-s2-understand-01"
+        ],
+        "occurrence_id": "occ-s2-understand",
+        "polarities": [
+          "negative"
+        ],
+        "provenance": [
+          {
+            "evaluation_id": "b2d9a63e-1f74-4c8a-95e0-7ab3d6f2184c",
+            "observation_id": "o-s2-understand-01",
+            "source": {
+              "attempt_id": "a-s2-01",
+              "kind": "direct",
+              "parent_observation_id": null
+            }
+          }
+        ],
+        "scenario_id": "S2-scattered",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The focused test covers only the default and does not directly exercise the renamed environment variable or request path."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "verify"
+        ],
+        "evaluation_ids": [
+          "b2d9a63e-1f74-4c8a-95e0-7ab3d6f2184c"
+        ],
+        "evidence_refs": [
+          "S2-A4"
+        ],
+        "observation_ids": [
+          "o-s2-verify-01"
+        ],
+        "occurrence_id": "occ-s2-verify",
+        "polarities": [
+          "negative"
+        ],
+        "provenance": [
+          {
+            "evaluation_id": "b2d9a63e-1f74-4c8a-95e0-7ab3d6f2184c",
+            "observation_id": "o-s2-verify-01",
+            "source": {
+              "attempt_id": "a-s2-01",
+              "kind": "direct",
+              "parent_observation_id": null
+            }
+          }
+        ],
+        "scenario_id": "S2-scattered",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The shared normalizer has two identity-sensitive consumers in separate modules."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "locate"
+        ],
+        "evaluation_ids": [
+          "c4a8e2f7-6b13-49d0-a5c9-2e7b1d843f60"
+        ],
+        "evidence_refs": [
+          "S3-A1",
+          "S3-A2",
+          "S3-A3"
+        ],
+        "observation_ids": [
+          "o-s3-locate-01"
+        ],
+        "occurrence_id": "occ-s3-locate",
+        "polarities": [
+          "negative"
+        ],
+        "provenance": [
+          {
+            "evaluation_id": "c4a8e2f7-6b13-49d0-a5c9-2e7b1d843f60",
+            "observation_id": "o-s3-locate-01",
+            "source": {
+              "attempt_id": "a-s3-01",
+              "kind": "direct",
+              "parent_observation_id": null
+            }
+          }
+        ],
+        "scenario_id": "S3-hidden-dependency",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The change must preserve colon removal while changing slash semantics for both cache and audit identities."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "understand"
+        ],
+        "evaluation_ids": [
+          "c4a8e2f7-6b13-49d0-a5c9-2e7b1d843f60"
+        ],
+        "evidence_refs": [
+          "S3-A1",
+          "S3-A2",
+          "S3-A3"
+        ],
+        "observation_ids": [
+          "o-s3-understand-01"
+        ],
+        "occurrence_id": "occ-s3-understand",
+        "polarities": [
+          "negative"
+        ],
+        "provenance": [
+          {
+            "evaluation_id": "c4a8e2f7-6b13-49d0-a5c9-2e7b1d843f60",
+            "observation_id": "o-s3-understand-01",
+            "source": {
+              "attempt_id": "a-s3-01",
+              "kind": "direct",
+              "parent_observation_id": null
+            }
+          }
+        ],
+        "scenario_id": "S3-hidden-dependency",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The existing check covers cache colon compatibility but neither slash preservation nor audit identity."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "verify"
+        ],
+        "evaluation_ids": [
+          "c4a8e2f7-6b13-49d0-a5c9-2e7b1d843f60"
+        ],
+        "evidence_refs": [
+          "S3-A3",
+          "S3-A4"
+        ],
+        "observation_ids": [
+          "o-s3-verify-01"
+        ],
+        "occurrence_id": "occ-s3-verify",
+        "polarities": [
+          "negative"
+        ],
+        "provenance": [
+          {
+            "evaluation_id": "c4a8e2f7-6b13-49d0-a5c9-2e7b1d843f60",
+            "observation_id": "o-s3-verify-01",
+            "source": {
+              "attempt_id": "a-s3-01",
+              "kind": "direct",
+              "parent_observation_id": null
+            }
+          }
+        ],
+        "scenario_id": "S3-hidden-dependency",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The target function and its focused test are clearly identified."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "locate"
+        ],
+        "evaluation_ids": [
+          "d1f583b9-27a4-4e6c-90d8-5b2a7c146ef3"
+        ],
+        "evidence_refs": [
+          "S4-A1",
+          "S4-A2"
+        ],
+        "observation_ids": [
+          "o-s4-locate-01"
+        ],
+        "occurrence_id": "occ-s4-locate",
+        "polarities": [
+          "positive"
+        ],
+        "provenance": [
+          {
+            "evaluation_id": "d1f583b9-27a4-4e6c-90d8-5b2a7c146ef3",
+            "observation_id": "o-s4-locate-01",
+            "source": {
+              "attempt_id": "a-s4-01",
+              "kind": "direct",
+              "parent_observation_id": null
+            }
+          }
+        ],
+        "scenario_id": "S4-unavailable-test-env",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The locale extension has an explicit default-preservation requirement and a supplied sv-SE case."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "understand"
+        ],
+        "evaluation_ids": [
+          "d1f583b9-27a4-4e6c-90d8-5b2a7c146ef3"
+        ],
+        "evidence_refs": [
+          "S4-A1",
+          "S4-A2"
+        ],
+        "observation_ids": [
+          "o-s4-understand-01"
+        ],
+        "occurrence_id": "occ-s4-understand",
+        "polarities": [
+          "negative"
+        ],
+        "provenance": [
+          {
+            "evaluation_id": "d1f583b9-27a4-4e6c-90d8-5b2a7c146ef3",
+            "observation_id": "o-s4-understand-01",
+            "source": {
+              "attempt_id": "a-s4-01",
+              "kind": "direct",
+              "parent_observation_id": null
+            }
+          }
+        ],
+        "scenario_id": "S4-unavailable-test-env",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "Verification is blocked by the absent proprietary runtime."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "verify"
+        ],
+        "evaluation_ids": [
+          "d1f583b9-27a4-4e6c-90d8-5b2a7c146ef3"
+        ],
+        "evidence_refs": [
+          "S4-A2",
+          "S4-A3"
+        ],
+        "observation_ids": [
+          "o-s4-verify-01"
+        ],
+        "occurrence_id": "occ-s4-verify",
+        "polarities": [
+          "negative"
+        ],
+        "provenance": [
+          {
+            "evaluation_id": "d1f583b9-27a4-4e6c-90d8-5b2a7c146ef3",
+            "observation_id": "o-s4-verify-01",
+            "source": {
+              "attempt_id": "a-s4-01",
+              "kind": "direct",
+              "parent_observation_id": null
+            }
+          }
+        ],
+        "scenario_id": "S4-unavailable-test-env",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The interrupted implementation and its regression target are both explicit."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "locate"
+        ],
+        "evaluation_ids": [
+          "f8b2c6d1-4e97-43a5-b0f2-6c1d9e784a35"
+        ],
+        "evidence_refs": [
+          "S5-A1",
+          "S5-A2"
+        ],
+        "observation_ids": [
+          "o-s5-locate-01"
+        ],
+        "occurrence_id": "occ-s5-locate",
+        "polarities": [
+          "positive"
+        ],
+        "provenance": [
+          {
+            "evaluation_id": "f8b2c6d1-4e97-43a5-b0f2-6c1d9e784a35",
+            "observation_id": "o-s5-locate-01",
+            "source": {
+              "attempt_id": "a-s5-01",
+              "kind": "direct",
+              "parent_observation_id": null
+            }
+          }
+        ],
+        "scenario_id": "S5-failed-aborted",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "Correctness depends on promise identity during flight and release on either settlement outcome."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "understand"
+        ],
+        "evaluation_ids": [
+          "f8b2c6d1-4e97-43a5-b0f2-6c1d9e784a35"
+        ],
+        "evidence_refs": [
+          "S5-A1"
+        ],
+        "observation_ids": [
+          "o-s5-understand-01"
+        ],
+        "occurrence_id": "occ-s5-understand",
+        "polarities": [
+          "negative"
+        ],
+        "provenance": [
+          {
+            "evaluation_id": "f8b2c6d1-4e97-43a5-b0f2-6c1d9e784a35",
+            "observation_id": "o-s5-understand-01",
+            "source": {
+              "attempt_id": "a-s5-01",
+              "kind": "direct",
+              "parent_observation_id": null
+            }
+          }
+        ],
+        "scenario_id": "S5-failed-aborted",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The supplied regression test exercises successful later retry but not reject-path cleanup."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "verify"
+        ],
+        "evaluation_ids": [
+          "f8b2c6d1-4e97-43a5-b0f2-6c1d9e784a35"
+        ],
+        "evidence_refs": [
+          "S5-A2"
+        ],
+        "observation_ids": [
+          "o-s5-verify-01"
+        ],
+        "occurrence_id": "occ-s5-verify",
+        "polarities": [
+          "negative"
+        ],
+        "provenance": [
+          {
+            "evaluation_id": "f8b2c6d1-4e97-43a5-b0f2-6c1d9e784a35",
+            "observation_id": "o-s5-verify-01",
+            "source": {
+              "attempt_id": "a-s5-01",
+              "kind": "direct",
+              "parent_observation_id": null
+            }
+          }
+        ],
+        "scenario_id": "S5-failed-aborted",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The single notify function contains both channel payload branches."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "locate"
+        ],
+        "evaluation_ids": [
+          "9c5f1a8e-3d64-42b7-a0e9-6f2c8d174b53"
+        ],
+        "evidence_refs": [
+          "S7B-A1"
+        ],
+        "observation_ids": [
+          "o-s7b-locate-01"
+        ],
+        "occurrence_id": "occ-s7b-locate",
+        "polarities": [
+          "positive"
+        ],
+        "provenance": [
+          {
+            "evaluation_id": "9c5f1a8e-3d64-42b7-a0e9-6f2c8d174b53",
+            "observation_id": "o-s7b-locate-01",
+            "source": {
+              "attempt_id": "a-s7b-01",
+              "kind": "direct",
+              "parent_observation_id": null
+            }
+          }
+        ],
+        "scenario_id": "S7-before",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The new option must preserve current payloads while changing tags in both email and SMS branches."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "understand"
+        ],
+        "evaluation_ids": [
+          "9c5f1a8e-3d64-42b7-a0e9-6f2c8d174b53"
+        ],
+        "evidence_refs": [
+          "S7B-A1"
+        ],
+        "observation_ids": [
+          "o-s7b-understand-01"
+        ],
+        "occurrence_id": "occ-s7b-understand",
+        "polarities": [
+          "negative"
+        ],
+        "provenance": [
+          {
+            "evaluation_id": "9c5f1a8e-3d64-42b7-a0e9-6f2c8d174b53",
+            "observation_id": "o-s7b-understand-01",
+            "source": {
+              "attempt_id": "a-s7b-01",
+              "kind": "direct",
+              "parent_observation_id": null
+            }
+          }
+        ],
+        "scenario_id": "S7-before",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The supplied test covers only default email behavior, not false mode or SMS."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "verify"
+        ],
+        "evaluation_ids": [
+          "9c5f1a8e-3d64-42b7-a0e9-6f2c8d174b53"
+        ],
+        "evidence_refs": [
+          "S7B-A2"
+        ],
+        "observation_ids": [
+          "o-s7b-verify-01"
+        ],
+        "occurrence_id": "occ-s7b-verify",
+        "polarities": [
+          "negative"
+        ],
+        "provenance": [
+          {
+            "evaluation_id": "9c5f1a8e-3d64-42b7-a0e9-6f2c8d174b53",
+            "observation_id": "o-s7b-verify-01",
+            "source": {
+              "attempt_id": "a-s7b-01",
+              "kind": "direct",
+              "parent_observation_id": null
+            }
+          }
+        ],
+        "scenario_id": "S7-before",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The requested behavior sits across notify, payloadFor, and the shared channel field map."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "locate"
+        ],
+        "evaluation_ids": [
+          "2b7e4d90-6a13-48f5-c1e8-3d9a7042bf65"
+        ],
+        "evidence_refs": [
+          "S7A-A1"
+        ],
+        "observation_ids": [
+          "o-s7a-locate-01"
+        ],
+        "occurrence_id": "occ-s7a-locate",
+        "polarities": [
+          "negative"
+        ],
+        "provenance": [
+          {
+            "evaluation_id": "2b7e4d90-6a13-48f5-c1e8-3d9a7042bf65",
+            "observation_id": "o-s7a-locate-01",
+            "source": {
+              "attempt_id": "a-s7a-01",
+              "kind": "direct",
+              "parent_observation_id": null
+            }
+          }
+        ],
+        "scenario_id": "S7-after",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "A shared payload path means the option must preserve both channel mappings while conditionally omitting tags."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "understand"
+        ],
+        "evaluation_ids": [
+          "2b7e4d90-6a13-48f5-c1e8-3d9a7042bf65"
+        ],
+        "evidence_refs": [
+          "S7A-A1"
+        ],
+        "observation_ids": [
+          "o-s7a-understand-01"
+        ],
+        "occurrence_id": "occ-s7a-understand",
+        "polarities": [
+          "negative"
+        ],
+        "provenance": [
+          {
+            "evaluation_id": "2b7e4d90-6a13-48f5-c1e8-3d9a7042bf65",
+            "observation_id": "o-s7a-understand-01",
+            "source": {
+              "attempt_id": "a-s7a-01",
+              "kind": "direct",
+              "parent_observation_id": null
+            }
+          }
+        ],
+        "scenario_id": "S7-after",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The supplied test covers only default email behavior and leaves shared SMS and omission behavior untested."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "verify"
+        ],
+        "evaluation_ids": [
+          "2b7e4d90-6a13-48f5-c1e8-3d9a7042bf65"
+        ],
+        "evidence_refs": [
+          "S7A-A2"
+        ],
+        "observation_ids": [
+          "o-s7a-verify-01"
+        ],
+        "occurrence_id": "occ-s7a-verify",
+        "polarities": [
+          "negative"
+        ],
+        "provenance": [
+          {
+            "evaluation_id": "2b7e4d90-6a13-48f5-c1e8-3d9a7042bf65",
+            "observation_id": "o-s7a-verify-01",
+            "source": {
+              "attempt_id": "a-s7a-01",
+              "kind": "direct",
+              "parent_observation_id": null
+            }
+          }
+        ],
+        "scenario_id": "S7-after",
+        "source_kinds": [
+          "direct"
+        ]
+      }
+    ],
+    "unique_occurrences": 34
+  },
+  "evaluation_count": 16,
+  "report_version": "code-friction-11.aggregate.v2",
+  "scenario_count": 8,
+  "scenario_reports": [
+    {
+      "dimensions": {
+        "locate": {
+          "agreement": true,
+          "ratings": [
+            "easy",
+            "easy"
+          ]
+        },
+        "understand": {
+          "agreement": true,
+          "ratings": [
+            "easy",
+            "easy"
+          ]
+        },
+        "verify": {
+          "agreement": true,
+          "ratings": [
+            "easy",
+            "easy"
+          ]
+        }
+      },
+      "environment_statuses": [
+        "available",
+        "available"
+      ],
+      "evaluations": [
+        "v2a-eval-s1-7c1e",
+        "e7c6f4b1-9a2d-4f3c-8b71-0d5e2a6c9148"
+      ],
+      "friction_classes": [
+        "code",
+        "code"
+      ],
+      "overhead": {
+        "elapsed_seconds_median": "unknown",
+        "elapsed_seconds_n": 0,
+        "input_tokens_median": "unknown",
+        "input_tokens_n": 0,
+        "output_tokens_median": "unknown",
+        "output_tokens_n": 0
+      },
+      "scenario_id": "S1-straightforward"
+    },
+    {
+      "dimensions": {
+        "locate": {
+          "agreement": true,
+          "ratings": [
+            "manageable",
+            "manageable"
+          ]
+        },
+        "understand": {
+          "agreement": true,
+          "ratings": [
+            "manageable",
+            "manageable"
+          ]
+        },
+        "verify": {
+          "agreement": true,
+          "ratings": [
+            "manageable",
+            "manageable"
+          ]
+        }
+      },
+      "environment_statuses": [
+        "available",
+        "available"
+      ],
+      "evaluations": [
+        "v2a-eval-s2-4b8d",
+        "b2d9a63e-1f74-4c8a-95e0-7ab3d6f2184c"
+      ],
+      "friction_classes": [
+        "code",
+        "code"
+      ],
+      "overhead": {
+        "elapsed_seconds_median": "unknown",
+        "elapsed_seconds_n": 0,
+        "input_tokens_median": "unknown",
+        "input_tokens_n": 0,
+        "output_tokens_median": "unknown",
+        "output_tokens_n": 0
+      },
+      "scenario_id": "S2-scattered"
+    },
+    {
+      "dimensions": {
+        "locate": {
+          "agreement": true,
+          "ratings": [
+            "difficult",
+            "difficult"
+          ]
+        },
+        "understand": {
+          "agreement": true,
+          "ratings": [
+            "difficult",
+            "difficult"
+          ]
+        },
+        "verify": {
+          "agreement": true,
+          "ratings": [
+            "difficult",
+            "difficult"
+          ]
+        }
+      },
+      "environment_statuses": [
+        "available",
+        "available"
+      ],
+      "evaluations": [
+        "v2a-eval-s3-91af",
+        "c4a8e2f7-6b13-49d0-a5c9-2e7b1d843f60"
+      ],
+      "friction_classes": [
+        "code",
+        "code"
+      ],
+      "overhead": {
+        "elapsed_seconds_median": "unknown",
+        "elapsed_seconds_n": 0,
+        "input_tokens_median": "unknown",
+        "input_tokens_n": 0,
+        "output_tokens_median": "unknown",
+        "output_tokens_n": 0
+      },
+      "scenario_id": "S3-hidden-dependency"
+    },
+    {
+      "dimensions": {
+        "locate": {
+          "agreement": true,
+          "ratings": [
+            "easy",
+            "easy"
+          ]
+        },
+        "understand": {
+          "agreement": false,
+          "ratings": [
+            "easy",
+            "manageable"
+          ]
+        },
+        "verify": {
+          "agreement": true,
+          "ratings": [
+            "not-assessable",
+            "not-assessable"
+          ]
+        }
+      },
+      "environment_statuses": [
+        "unavailable",
+        "unavailable"
+      ],
+      "evaluations": [
+        "v2a-eval-s4-2e73",
+        "d1f583b9-27a4-4e6c-90d8-5b2a7c146ef3"
+      ],
+      "friction_classes": [
+        "environment",
+        "environment"
+      ],
+      "overhead": {
+        "elapsed_seconds_median": "unknown",
+        "elapsed_seconds_n": 0,
+        "input_tokens_median": "unknown",
+        "input_tokens_n": 0,
+        "output_tokens_median": "unknown",
+        "output_tokens_n": 0
+      },
+      "scenario_id": "S4-unavailable-test-env"
+    },
+    {
+      "dimensions": {
+        "locate": {
+          "agreement": true,
+          "ratings": [
+            "easy",
+            "easy"
+          ]
+        },
+        "understand": {
+          "agreement": true,
+          "ratings": [
+            "manageable",
+            "manageable"
+          ]
+        },
+        "verify": {
+          "agreement": true,
+          "ratings": [
+            "manageable",
+            "manageable"
+          ]
+        }
+      },
+      "environment_statuses": [
+        "available",
+        "available"
+      ],
+      "evaluations": [
+        "v2a-eval-s5-c6a4",
+        "f8b2c6d1-4e97-43a5-b0f2-6c1d9e784a35"
+      ],
+      "friction_classes": [
+        "code",
+        "code"
+      ],
+      "overhead": {
+        "elapsed_seconds_median": "unknown",
+        "elapsed_seconds_n": 0,
+        "input_tokens_median": "unknown",
+        "input_tokens_n": 0,
+        "output_tokens_median": "unknown",
+        "output_tokens_n": 0
+      },
+      "scenario_id": "S5-failed-aborted"
+    },
+    {
+      "dimensions": {
+        "locate": {
+          "agreement": true,
+          "ratings": [
+            "not-assessable",
+            "not-assessable"
+          ]
+        },
+        "understand": {
+          "agreement": true,
+          "ratings": [
+            "not-assessable",
+            "not-assessable"
+          ]
+        },
+        "verify": {
+          "agreement": true,
+          "ratings": [
+            "not-assessable",
+            "not-assessable"
+          ]
+        }
+      },
+      "environment_statuses": [
+        "available",
+        "available"
+      ],
+      "evaluations": [
+        "v2a-eval-s6-d5f9",
+        "a3e9d742-5c18-4fb0-86d1-2b7e4c905af6"
+      ],
+      "friction_classes": [
+        "not_applicable",
+        "not_applicable"
+      ],
+      "overhead": {
+        "elapsed_seconds_median": "unknown",
+        "elapsed_seconds_n": 0,
+        "input_tokens_median": "unknown",
+        "input_tokens_n": 0,
+        "output_tokens_median": "unknown",
+        "output_tokens_n": 0
+      },
+      "scenario_id": "S6-qa"
+    },
+    {
+      "dimensions": {
+        "locate": {
+          "agreement": true,
+          "ratings": [
+            "easy",
+            "easy"
+          ]
+        },
+        "understand": {
+          "agreement": true,
+          "ratings": [
+            "manageable",
+            "manageable"
+          ]
+        },
+        "verify": {
+          "agreement": true,
+          "ratings": [
+            "manageable",
+            "manageable"
+          ]
+        }
+      },
+      "environment_statuses": [
+        "available",
+        "available"
+      ],
+      "evaluations": [
+        "v2a-eval-s7b-8a22",
+        "9c5f1a8e-3d64-42b7-a0e9-6f2c8d174b53"
+      ],
+      "friction_classes": [
+        "code",
+        "code"
+      ],
+      "overhead": {
+        "elapsed_seconds_median": "unknown",
+        "elapsed_seconds_n": 0,
+        "input_tokens_median": "unknown",
+        "input_tokens_n": 0,
+        "output_tokens_median": "unknown",
+        "output_tokens_n": 0
+      },
+      "scenario_id": "S7-before"
+    },
+    {
+      "dimensions": {
+        "locate": {
+          "agreement": false,
+          "ratings": [
+            "easy",
+            "manageable"
+          ]
+        },
+        "understand": {
+          "agreement": false,
+          "ratings": [
+            "easy",
+            "manageable"
+          ]
+        },
+        "verify": {
+          "agreement": true,
+          "ratings": [
+            "manageable",
+            "manageable"
+          ]
+        }
+      },
+      "environment_statuses": [
+        "available",
+        "available"
+      ],
+      "evaluations": [
+        "v2a-eval-s7a-3f17",
+        "2b7e4d90-6a13-48f5-c1e8-3d9a7042bf65"
+      ],
+      "friction_classes": [
+        "code",
+        "code"
+      ],
+      "overhead": {
+        "elapsed_seconds_median": "unknown",
+        "elapsed_seconds_n": 0,
+        "input_tokens_median": "unknown",
+        "input_tokens_n": 0,
+        "output_tokens_median": "unknown",
+        "output_tokens_n": 0
+      },
+      "scenario_id": "S7-after"
+    }
+  ]
+}

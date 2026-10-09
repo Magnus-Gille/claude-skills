@@ -1,0 +1,1320 @@
+{
+  "deduplicated_observations": {
+    "occurrences": [
+      {
+        "claims": [
+          "The production target is a single obvious function."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "locate"
+        ],
+        "evaluation_ids": [
+          "run-a-S1-straightforward"
+        ],
+        "evidence_refs": [
+          "S1-A1"
+        ],
+        "observation_ids": [
+          "run-a-S1-o1"
+        ],
+        "occurrence_id": "run-a-S1-f1",
+        "polarities": [
+          "positive"
+        ],
+        "scenario_id": "S1-straightforward",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The requested fallback and preserved trim rule are explicit."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "understand"
+        ],
+        "evaluation_ids": [
+          "run-a-S1-straightforward"
+        ],
+        "evidence_refs": [
+          "S1-A1"
+        ],
+        "observation_ids": [
+          "run-a-S1-o2"
+        ],
+        "occurrence_id": "run-a-S1-f2",
+        "polarities": [
+          "positive"
+        ],
+        "scenario_id": "S1-straightforward",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "A focused available test names the existing behavior to preserve."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "verify"
+        ],
+        "evaluation_ids": [
+          "run-a-S1-straightforward"
+        ],
+        "evidence_refs": [
+          "S1-A2"
+        ],
+        "observation_ids": [
+          "run-a-S1-o3"
+        ],
+        "occurrence_id": "run-a-S1-f3",
+        "polarities": [
+          "positive"
+        ],
+        "scenario_id": "S1-straightforward",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "Ownership is distributed across configuration, retry, request, and test files."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "locate"
+        ],
+        "evaluation_ids": [
+          "run-a-S2-scattered"
+        ],
+        "evidence_refs": [
+          "S2-A1",
+          "S2-A2",
+          "S2-A3",
+          "S2-A4"
+        ],
+        "observation_ids": [
+          "run-a-S2-o1"
+        ],
+        "occurrence_id": "run-a-S2-f1",
+        "polarities": [
+          "negative"
+        ],
+        "scenario_id": "S2-scattered",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The supplied request path makes the value flow and unchanged default explicit."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "understand"
+        ],
+        "evaluation_ids": [
+          "run-a-S2-scattered"
+        ],
+        "evidence_refs": [
+          "S2-A1",
+          "S2-A3"
+        ],
+        "observation_ids": [
+          "run-a-S2-o2"
+        ],
+        "occurrence_id": "run-a-S2-f2",
+        "polarities": [
+          "positive"
+        ],
+        "scenario_id": "S2-scattered",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The focused test covers the default but not the renamed environment variable through request."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "verify"
+        ],
+        "evaluation_ids": [
+          "run-a-S2-scattered"
+        ],
+        "evidence_refs": [
+          "S2-A3",
+          "S2-A4"
+        ],
+        "observation_ids": [
+          "run-a-S2-o3"
+        ],
+        "occurrence_id": "run-a-S2-f3",
+        "polarities": [
+          "negative"
+        ],
+        "scenario_id": "S2-scattered",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The target has multiple identity consumers, including an audit consumer beyond the focused test."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "locate"
+        ],
+        "evaluation_ids": [
+          "run-a-S3-hidden-dependency"
+        ],
+        "evidence_refs": [
+          "S3-A1",
+          "S3-A2",
+          "S3-A3",
+          "S3-A4"
+        ],
+        "observation_ids": [
+          "run-a-S3-o1"
+        ],
+        "occurrence_id": "run-a-S3-f1",
+        "polarities": [
+          "negative"
+        ],
+        "scenario_id": "S3-hidden-dependency",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The requested normalization change must preserve two downstream identity contracts."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "understand"
+        ],
+        "evaluation_ids": [
+          "run-a-S3-hidden-dependency"
+        ],
+        "evidence_refs": [
+          "S3-A2",
+          "S3-A3"
+        ],
+        "observation_ids": [
+          "run-a-S3-o2"
+        ],
+        "occurrence_id": "run-a-S3-f2",
+        "polarities": [
+          "negative"
+        ],
+        "scenario_id": "S3-hidden-dependency",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The available test omits slash preservation and audit identity coverage."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "verify"
+        ],
+        "evaluation_ids": [
+          "run-a-S3-hidden-dependency"
+        ],
+        "evidence_refs": [
+          "S3-A3",
+          "S3-A4"
+        ],
+        "observation_ids": [
+          "run-a-S3-o3"
+        ],
+        "occurrence_id": "run-a-S3-f3",
+        "polarities": [
+          "negative"
+        ],
+        "scenario_id": "S3-hidden-dependency",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The code target and locale test call are directly identified."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "locate"
+        ],
+        "evaluation_ids": [
+          "run-a-S4-unavailable-test-env"
+        ],
+        "evidence_refs": [
+          "S4-A1",
+          "S4-A2"
+        ],
+        "observation_ids": [
+          "run-a-S4-o1"
+        ],
+        "occurrence_id": "run-a-S4-f1",
+        "polarities": [
+          "positive"
+        ],
+        "scenario_id": "S4-unavailable-test-env",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The required corp-runtime binary is intentionally unavailable."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "verify"
+        ],
+        "evaluation_ids": [
+          "run-a-S4-unavailable-test-env"
+        ],
+        "evidence_refs": [
+          "S4-A2",
+          "S4-A3"
+        ],
+        "observation_ids": [
+          "run-a-S4-o2"
+        ],
+        "occurrence_id": "run-a-S4-f2",
+        "polarities": [
+          "negative"
+        ],
+        "scenario_id": "S4-unavailable-test-env",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The partial edit and pending state are confined to enqueue."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "locate"
+        ],
+        "evaluation_ids": [
+          "run-a-S5-failed-aborted"
+        ],
+        "evidence_refs": [
+          "S5-A1"
+        ],
+        "observation_ids": [
+          "run-a-S5-o1"
+        ],
+        "occurrence_id": "run-a-S5-f1",
+        "polarities": [
+          "positive"
+        ],
+        "scenario_id": "S5-failed-aborted",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "Promise lifecycle cleanup must handle both settlement outcomes and permit a later retry."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "understand"
+        ],
+        "evaluation_ids": [
+          "run-a-S5-failed-aborted"
+        ],
+        "evidence_refs": [
+          "S5-A1",
+          "S5-A2"
+        ],
+        "observation_ids": [
+          "run-a-S5-o2"
+        ],
+        "occurrence_id": "run-a-S5-f2",
+        "polarities": [
+          "negative"
+        ],
+        "scenario_id": "S5-failed-aborted",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The available test covers success-path retry but does not name rejection cleanup."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "verify"
+        ],
+        "evaluation_ids": [
+          "run-a-S5-failed-aborted"
+        ],
+        "evidence_refs": [
+          "S5-A2"
+        ],
+        "observation_ids": [
+          "run-a-S5-o3"
+        ],
+        "occurrence_id": "run-a-S5-f3",
+        "polarities": [
+          "negative"
+        ],
+        "scenario_id": "S5-failed-aborted",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The requested behavior is implemented in one obvious notify function."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "locate"
+        ],
+        "evaluation_ids": [
+          "run-a-S7-before"
+        ],
+        "evidence_refs": [
+          "S7B-A1"
+        ],
+        "observation_ids": [
+          "run-a-S7B-o1"
+        ],
+        "occurrence_id": "run-a-S7B-f1",
+        "polarities": [
+          "positive"
+        ],
+        "scenario_id": "S7-before",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The option contract must be kept consistent across duplicated email and SMS branches."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "understand"
+        ],
+        "evaluation_ids": [
+          "run-a-S7-before"
+        ],
+        "evidence_refs": [
+          "S7B-A1"
+        ],
+        "observation_ids": [
+          "run-a-S7B-o2"
+        ],
+        "occurrence_id": "run-a-S7B-f2",
+        "polarities": [
+          "negative"
+        ],
+        "scenario_id": "S7-before",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The focused test does not exercise the opt-out or SMS branch."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "verify"
+        ],
+        "evaluation_ids": [
+          "run-a-S7-before"
+        ],
+        "evidence_refs": [
+          "S7B-A2"
+        ],
+        "observation_ids": [
+          "run-a-S7B-o3"
+        ],
+        "occurrence_id": "run-a-S7B-f3",
+        "polarities": [
+          "negative"
+        ],
+        "scenario_id": "S7-before",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The normalized option handling is centralized in one shared payload path."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "locate"
+        ],
+        "evaluation_ids": [
+          "run-a-S7-after"
+        ],
+        "evidence_refs": [
+          "S7A-A1"
+        ],
+        "observation_ids": [
+          "run-a-S7A-o1"
+        ],
+        "occurrence_id": "run-a-S7A-f1",
+        "polarities": [
+          "positive"
+        ],
+        "scenario_id": "S7-after",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The includeTags default and opt-out rule are expressed once in notify."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "understand"
+        ],
+        "evaluation_ids": [
+          "run-a-S7-after"
+        ],
+        "evidence_refs": [
+          "S7A-A1"
+        ],
+        "observation_ids": [
+          "run-a-S7A-o2"
+        ],
+        "occurrence_id": "run-a-S7A-f2",
+        "polarities": [
+          "positive"
+        ],
+        "scenario_id": "S7-after",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The focused test still omits false and SMS payload coverage."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "verify"
+        ],
+        "evaluation_ids": [
+          "run-a-S7-after"
+        ],
+        "evidence_refs": [
+          "S7A-A2"
+        ],
+        "observation_ids": [
+          "run-a-S7A-o3"
+        ],
+        "occurrence_id": "run-a-S7A-f3",
+        "polarities": [
+          "negative"
+        ],
+        "scenario_id": "S7-after",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The production change has one obvious owning symbol."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "locate"
+        ],
+        "evaluation_ids": [
+          "run-b-7f0c4f1a-s1"
+        ],
+        "evidence_refs": [
+          "S1-A1"
+        ],
+        "observation_ids": [
+          "S1-O1"
+        ],
+        "occurrence_id": "S1-locally-owned",
+        "polarities": [
+          "positive"
+        ],
+        "scenario_id": "S1-straightforward",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "A focused deterministic test is already present for the existing trim behavior."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "verify"
+        ],
+        "evaluation_ids": [
+          "run-b-7f0c4f1a-s1"
+        ],
+        "evidence_refs": [
+          "S1-A2"
+        ],
+        "observation_ids": [
+          "S1-O2"
+        ],
+        "occurrence_id": "S1-focused-check",
+        "polarities": [
+          "positive"
+        ],
+        "scenario_id": "S1-straightforward",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The effective retry setting is distributed across configuration, request wiring, retry behavior, and a test."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "locate"
+        ],
+        "evaluation_ids": [
+          "run-b-7f0c4f1a-s2"
+        ],
+        "evidence_refs": [
+          "S2-A1",
+          "S2-A2",
+          "S2-A3",
+          "S2-A4"
+        ],
+        "observation_ids": [
+          "S2-O1"
+        ],
+        "occurrence_id": "S2-cross-file-location",
+        "polarities": [
+          "negative"
+        ],
+        "scenario_id": "S2-scattered",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The existing focused test does not exercise the renamed variable or request path."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "verify"
+        ],
+        "evaluation_ids": [
+          "run-b-7f0c4f1a-s2"
+        ],
+        "evidence_refs": [
+          "S2-A3",
+          "S2-A4"
+        ],
+        "observation_ids": [
+          "S2-O2"
+        ],
+        "occurrence_id": "S2-incomplete-verification",
+        "polarities": [
+          "negative"
+        ],
+        "scenario_id": "S2-scattered",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The normalization symbol has distinct cache and audit identity consumers."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "locate"
+        ],
+        "evaluation_ids": [
+          "run-b-7f0c4f1a-s3"
+        ],
+        "evidence_refs": [
+          "S3-A1",
+          "S3-A2",
+          "S3-A3"
+        ],
+        "observation_ids": [
+          "S3-O1"
+        ],
+        "occurrence_id": "S3-distributed-consumers",
+        "polarities": [
+          "negative"
+        ],
+        "scenario_id": "S3-hidden-dependency",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "Changing normalization affects both cache identity and audit event identity."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "understand"
+        ],
+        "evaluation_ids": [
+          "run-b-7f0c4f1a-s3"
+        ],
+        "evidence_refs": [
+          "S3-A2",
+          "S3-A3"
+        ],
+        "observation_ids": [
+          "S3-O2"
+        ],
+        "occurrence_id": "S3-identity-contract",
+        "polarities": [
+          "negative"
+        ],
+        "scenario_id": "S3-hidden-dependency",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The existing test does not cover slash preservation or audit output."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "verify"
+        ],
+        "evaluation_ids": [
+          "run-b-7f0c4f1a-s3"
+        ],
+        "evidence_refs": [
+          "S3-A3",
+          "S3-A4"
+        ],
+        "observation_ids": [
+          "S3-O3"
+        ],
+        "occurrence_id": "S3-coverage-gap",
+        "polarities": [
+          "negative"
+        ],
+        "scenario_id": "S3-hidden-dependency",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The intended sv-SE test cannot be executed because corp-runtime is absent."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "verify"
+        ],
+        "evaluation_ids": [
+          "run-b-7f0c4f1a-s4"
+        ],
+        "evidence_refs": [
+          "S4-A2",
+          "S4-A3"
+        ],
+        "observation_ids": [
+          "S4-O1"
+        ],
+        "occurrence_id": "S4-runtime-block",
+        "polarities": [
+          "negative"
+        ],
+        "scenario_id": "S4-unavailable-test-env",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The partial edit leaves settle cleanup unfinished, so the required retry lifecycle is incomplete."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "understand"
+        ],
+        "evaluation_ids": [
+          "run-b-7f0c4f1a-s5"
+        ],
+        "evidence_refs": [
+          "S5-A1"
+        ],
+        "observation_ids": [
+          "S5-O1"
+        ],
+        "occurrence_id": "S5-missing-cleanup",
+        "polarities": [
+          "negative"
+        ],
+        "scenario_id": "S5-failed-aborted",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The supplied regression test checks later sequential calls but not shared in-flight identity or rejection cleanup."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "verify"
+        ],
+        "evaluation_ids": [
+          "run-b-7f0c4f1a-s5"
+        ],
+        "evidence_refs": [
+          "S5-A2"
+        ],
+        "observation_ids": [
+          "S5-O2"
+        ],
+        "occurrence_id": "S5-test-gap",
+        "polarities": [
+          "negative"
+        ],
+        "scenario_id": "S5-failed-aborted",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The includeTags behavior is duplicated across separate email and sms branches."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "understand"
+        ],
+        "evaluation_ids": [
+          "run-b-7f0c4f1a-s7b"
+        ],
+        "evidence_refs": [
+          "S7B-A1"
+        ],
+        "observation_ids": [
+          "S7B-O1"
+        ],
+        "occurrence_id": "S7B-duplicated-branches",
+        "polarities": [
+          "negative"
+        ],
+        "scenario_id": "S7-before",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The focused test does not cover omission of tags or the sms channel."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "verify"
+        ],
+        "evaluation_ids": [
+          "run-b-7f0c4f1a-s7b"
+        ],
+        "evidence_refs": [
+          "S7B-A2"
+        ],
+        "observation_ids": [
+          "S7B-O2"
+        ],
+        "occurrence_id": "S7B-coverage-gap",
+        "polarities": [
+          "negative"
+        ],
+        "scenario_id": "S7-before",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The shared payloadFor path makes the option behavior uniform across channels."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "understand"
+        ],
+        "evaluation_ids": [
+          "run-b-7f0c4f1a-s7a"
+        ],
+        "evidence_refs": [
+          "S7A-A1"
+        ],
+        "observation_ids": [
+          "S7A-O1"
+        ],
+        "occurrence_id": "S7A-shared-option-path",
+        "polarities": [
+          "positive"
+        ],
+        "scenario_id": "S7-after",
+        "source_kinds": [
+          "direct"
+        ]
+      },
+      {
+        "claims": [
+          "The supplied focused test still does not exercise includeTags false or sms payloads."
+        ],
+        "collision": false,
+        "count": 1,
+        "dimensions": [
+          "verify"
+        ],
+        "evaluation_ids": [
+          "run-b-7f0c4f1a-s7a"
+        ],
+        "evidence_refs": [
+          "S7A-A2"
+        ],
+        "observation_ids": [
+          "S7A-O2"
+        ],
+        "occurrence_id": "S7A-coverage-gap",
+        "polarities": [
+          "negative"
+        ],
+        "scenario_id": "S7-after",
+        "source_kinds": [
+          "direct"
+        ]
+      }
+    ],
+    "unique_occurrences": 34
+  },
+  "evaluation_count": 16,
+  "report_version": "code-friction-11.aggregate.v1",
+  "scenario_count": 8,
+  "scenario_reports": [
+    {
+      "dimensions": {
+        "locate": {
+          "agreement": true,
+          "ratings": [
+            "easy",
+            "easy"
+          ]
+        },
+        "understand": {
+          "agreement": true,
+          "ratings": [
+            "easy",
+            "easy"
+          ]
+        },
+        "verify": {
+          "agreement": true,
+          "ratings": [
+            "easy",
+            "easy"
+          ]
+        }
+      },
+      "environment_statuses": [
+        "available",
+        "available"
+      ],
+      "evaluations": [
+        "run-a-S1-straightforward",
+        "run-b-7f0c4f1a-s1"
+      ],
+      "friction_classes": [
+        "code",
+        "code"
+      ],
+      "overhead": {
+        "elapsed_seconds_median": "unknown",
+        "elapsed_seconds_n": 0,
+        "input_tokens_median": "unknown",
+        "input_tokens_n": 0,
+        "output_tokens_median": "unknown",
+        "output_tokens_n": 0
+      },
+      "scenario_id": "S1-straightforward"
+    },
+    {
+      "dimensions": {
+        "locate": {
+          "agreement": true,
+          "ratings": [
+            "manageable",
+            "manageable"
+          ]
+        },
+        "understand": {
+          "agreement": true,
+          "ratings": [
+            "manageable",
+            "manageable"
+          ]
+        },
+        "verify": {
+          "agreement": true,
+          "ratings": [
+            "manageable",
+            "manageable"
+          ]
+        }
+      },
+      "environment_statuses": [
+        "available",
+        "available"
+      ],
+      "evaluations": [
+        "run-a-S2-scattered",
+        "run-b-7f0c4f1a-s2"
+      ],
+      "friction_classes": [
+        "code",
+        "code"
+      ],
+      "overhead": {
+        "elapsed_seconds_median": "unknown",
+        "elapsed_seconds_n": 0,
+        "input_tokens_median": "unknown",
+        "input_tokens_n": 0,
+        "output_tokens_median": "unknown",
+        "output_tokens_n": 0
+      },
+      "scenario_id": "S2-scattered"
+    },
+    {
+      "dimensions": {
+        "locate": {
+          "agreement": true,
+          "ratings": [
+            "difficult",
+            "difficult"
+          ]
+        },
+        "understand": {
+          "agreement": true,
+          "ratings": [
+            "difficult",
+            "difficult"
+          ]
+        },
+        "verify": {
+          "agreement": true,
+          "ratings": [
+            "difficult",
+            "difficult"
+          ]
+        }
+      },
+      "environment_statuses": [
+        "available",
+        "available"
+      ],
+      "evaluations": [
+        "run-a-S3-hidden-dependency",
+        "run-b-7f0c4f1a-s3"
+      ],
+      "friction_classes": [
+        "code",
+        "code"
+      ],
+      "overhead": {
+        "elapsed_seconds_median": "unknown",
+        "elapsed_seconds_n": 0,
+        "input_tokens_median": "unknown",
+        "input_tokens_n": 0,
+        "output_tokens_median": "unknown",
+        "output_tokens_n": 0
+      },
+      "scenario_id": "S3-hidden-dependency"
+    },
+    {
+      "dimensions": {
+        "locate": {
+          "agreement": true,
+          "ratings": [
+            "easy",
+            "easy"
+          ]
+        },
+        "understand": {
+          "agreement": true,
+          "ratings": [
+            "manageable",
+            "manageable"
+          ]
+        },
+        "verify": {
+          "agreement": true,
+          "ratings": [
+            "not-assessable",
+            "not-assessable"
+          ]
+        }
+      },
+      "environment_statuses": [
+        "unavailable",
+        "unavailable"
+      ],
+      "evaluations": [
+        "run-a-S4-unavailable-test-env",
+        "run-b-7f0c4f1a-s4"
+      ],
+      "friction_classes": [
+        "environment",
+        "environment"
+      ],
+      "overhead": {
+        "elapsed_seconds_median": "unknown",
+        "elapsed_seconds_n": 0,
+        "input_tokens_median": "unknown",
+        "input_tokens_n": 0,
+        "output_tokens_median": "unknown",
+        "output_tokens_n": 0
+      },
+      "scenario_id": "S4-unavailable-test-env"
+    },
+    {
+      "dimensions": {
+        "locate": {
+          "agreement": true,
+          "ratings": [
+            "easy",
+            "easy"
+          ]
+        },
+        "understand": {
+          "agreement": true,
+          "ratings": [
+            "manageable",
+            "manageable"
+          ]
+        },
+        "verify": {
+          "agreement": true,
+          "ratings": [
+            "manageable",
+            "manageable"
+          ]
+        }
+      },
+      "environment_statuses": [
+        "available",
+        "available"
+      ],
+      "evaluations": [
+        "run-a-S5-failed-aborted",
+        "run-b-7f0c4f1a-s5"
+      ],
+      "friction_classes": [
+        "code",
+        "code"
+      ],
+      "overhead": {
+        "elapsed_seconds_median": "unknown",
+        "elapsed_seconds_n": 0,
+        "input_tokens_median": "unknown",
+        "input_tokens_n": 0,
+        "output_tokens_median": "unknown",
+        "output_tokens_n": 0
+      },
+      "scenario_id": "S5-failed-aborted"
+    },
+    {
+      "dimensions": {
+        "locate": {
+          "agreement": true,
+          "ratings": [
+            "not-assessable",
+            "not-assessable"
+          ]
+        },
+        "understand": {
+          "agreement": true,
+          "ratings": [
+            "not-assessable",
+            "not-assessable"
+          ]
+        },
+        "verify": {
+          "agreement": true,
+          "ratings": [
+            "not-assessable",
+            "not-assessable"
+          ]
+        }
+      },
+      "environment_statuses": [
+        "available",
+        "available"
+      ],
+      "evaluations": [
+        "run-a-S6-qa",
+        "run-b-7f0c4f1a-s6"
+      ],
+      "friction_classes": [
+        "not_applicable",
+        "not_applicable"
+      ],
+      "overhead": {
+        "elapsed_seconds_median": "unknown",
+        "elapsed_seconds_n": 0,
+        "input_tokens_median": "unknown",
+        "input_tokens_n": 0,
+        "output_tokens_median": "unknown",
+        "output_tokens_n": 0
+      },
+      "scenario_id": "S6-qa"
+    },
+    {
+      "dimensions": {
+        "locate": {
+          "agreement": true,
+          "ratings": [
+            "easy",
+            "easy"
+          ]
+        },
+        "understand": {
+          "agreement": true,
+          "ratings": [
+            "manageable",
+            "manageable"
+          ]
+        },
+        "verify": {
+          "agreement": true,
+          "ratings": [
+            "manageable",
+            "manageable"
+          ]
+        }
+      },
+      "environment_statuses": [
+        "available",
+        "available"
+      ],
+      "evaluations": [
+        "run-a-S7-before",
+        "run-b-7f0c4f1a-s7b"
+      ],
+      "friction_classes": [
+        "code",
+        "code"
+      ],
+      "overhead": {
+        "elapsed_seconds_median": "unknown",
+        "elapsed_seconds_n": 0,
+        "input_tokens_median": "unknown",
+        "input_tokens_n": 0,
+        "output_tokens_median": "unknown",
+        "output_tokens_n": 0
+      },
+      "scenario_id": "S7-before"
+    },
+    {
+      "dimensions": {
+        "locate": {
+          "agreement": true,
+          "ratings": [
+            "easy",
+            "easy"
+          ]
+        },
+        "understand": {
+          "agreement": false,
+          "ratings": [
+            "manageable",
+            "easy"
+          ]
+        },
+        "verify": {
+          "agreement": true,
+          "ratings": [
+            "manageable",
+            "manageable"
+          ]
+        }
+      },
+      "environment_statuses": [
+        "available",
+        "available"
+      ],
+      "evaluations": [
+        "run-a-S7-after",
+        "run-b-7f0c4f1a-s7a"
+      ],
+      "friction_classes": [
+        "code",
+        "code"
+      ],
+      "overhead": {
+        "elapsed_seconds_median": "unknown",
+        "elapsed_seconds_n": 0,
+        "input_tokens_median": "unknown",
+        "input_tokens_n": 0,
+        "output_tokens_median": "unknown",
+        "output_tokens_n": 0
+      },
+      "scenario_id": "S7-after"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "files": [
+    {
+      "bytes": 2849,
+      "path": "evaluator-instructions.md",
+      "sha256": "664efd1dc36e1db36ed3a816a98f775ddf5933e69de426f9c688608b01fc2a98"
+    },
+    {
+      "bytes": 2322,
+      "path": "rubric.md",
+      "sha256": "2e1d3a1888a444b9f3ecf4ce42a7fc6fbbb6881c44f89fd6ee8b2047b244a4cc"
+    },
+    {
+      "bytes": 13231,
+      "path": "scenarios.json",
+      "sha256": "b1a64ac257ded5969b061eb295aeeef55e3b2f1973763cb70eb59aa595a8fabb"
+    }
+  ],
+  "freeze_version": "code-friction-11.freeze.v1",
+  "packet_version": "code-friction-11.v1"
+}

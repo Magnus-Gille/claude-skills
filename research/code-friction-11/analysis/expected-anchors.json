@@ -1,0 +1,15 @@
+{
+  "analysis_version": "code-friction-11.analysis.v1",
+  "disposition": "Keep as calibration guidance only; do not expose to blind evaluators.",
+  "scenarios": {
+    "S1-straightforward": {"likely": {"locate": "easy", "understand": "easy", "verify": "easy"}, "code_environment": "code", "anchors": ["S1-A1", "S1-A2"], "note": "One production symbol and a directly relevant test."},
+    "S2-scattered": {"likely": {"locate": "manageable", "understand": "manageable", "verify": "manageable"}, "code_environment": "code", "anchors": ["S2-A1", "S2-A2", "S2-A3", "S2-A4"], "note": "The variable crosses configuration, retry logic, and request wiring; the test is narrow."},
+    "S3-hidden-dependency": {"likely": {"locate": "manageable", "understand": "difficult", "verify": "difficult"}, "code_environment": "code", "anchors": ["S3-A1", "S3-A2", "S3-A3", "S3-A4"], "note": "Audit is a consumer whose compatibility consequence is easy to miss; current test omits slash behavior."},
+    "S4-unavailable-test-env": {"likely": {"locate": "easy", "understand": "manageable", "verify": "not-assessable"}, "code_environment": "environment", "anchors": ["S4-A1", "S4-A2", "S4-A3"], "note": "Code target is local, while the required corp-runtime is explicitly unavailable."},
+    "S5-failed-aborted": {"likely": {"locate": "manageable", "understand": "difficult", "verify": "manageable"}, "code_environment": "code", "anchors": ["S5-A1", "S5-A2"], "note": "The missing settle cleanup and the interrupted state affect impact reasoning; supplied regression test gives a verification target."},
+    "S6-qa": {"likely": {"locate": "not-assessable", "understand": "not-assessable", "verify": "not-assessable"}, "code_environment": "not_applicable", "anchors": ["S6-A1", "S6-A2", "S6-A3"], "note": "Pure Q&A is outside the changeability rubric and must stay explicitly N/A."},
+    "S7-before": {"likely": {"locate": "manageable", "understand": "manageable", "verify": "manageable"}, "code_environment": "code", "anchors": ["S7B-A1", "S7B-A2"], "note": "Two duplicated branches make the option behavior and coverage more cumbersome."},
+    "S7-after": {"likely": {"locate": "easy", "understand": "easy", "verify": "manageable"}, "code_environment": "code", "anchors": ["S7A-A1", "S7A-A2"], "note": "Shared payload construction simplifies consequence tracing; the test still lacks the false-option case."}
+  }
+}
+
