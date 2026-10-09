@@ -1,0 +1,10 @@
+{
+  "packet_version": "code-friction-11.v2",
+  "purpose": "Blind public-safe evaluator input for issue #11 revised calibration",
+  "files": [
+    "evaluator-instructions.md",
+    "rubric.md",
+    "scenarios.json"
+  ],
+  "sha256": "See analysis/frozen-manifest-v2.json"
+}

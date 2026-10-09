@@ -1,0 +1,246 @@
+[
+  {
+    "schema_version": "code-friction-11.eval.v1",
+    "evaluation_id": "e7c6f4b1-9a2d-4f3c-8b71-0d5e2a6c9148",
+    "evaluator_id": "v2-run-b",
+    "scenario_id": "S1-straightforward",
+    "requested_model": "gpt-6-luna",
+    "requested_effort": "high",
+    "observed_model": "unknown",
+    "observed_effort": "unknown",
+    "elapsed_seconds": "unknown",
+    "input_tokens": "unknown",
+    "output_tokens": "unknown",
+    "task_status": "planned",
+    "completion_claim": false,
+    "applicability": "applicable",
+    "environment": {
+      "status": "available",
+      "friction_class": "code",
+      "notes": "The supplied Node test is the intended deterministic check."
+    },
+    "ratings": {
+      "locate": {"rating": "easy", "friction_class": "code", "reason": "The only production symbol is displayName, with its focused test beside it."},
+      "understand": {"rating": "easy", "friction_class": "code", "reason": "The requested fallback and existing trim behavior are explicit in one local function."},
+      "verify": {"rating": "easy", "friction_class": "code", "reason": "The supplied focused Node test directly exercises the requested behavior after a small extension."}
+    },
+    "observations": [
+      {"observation_id": "o-s1-locate-01", "occurrence_id": "occ-s1-locate", "polarity": "positive", "dimension": "locate", "claim": "The owning production symbol is singular and explicit.", "evidence_refs": ["S1-A1"], "source": {"kind": "direct", "attempt_id": "a-s1-01", "parent_observation_id": null}},
+      {"observation_id": "o-s1-understand-01", "occurrence_id": "occ-s1-understand", "polarity": "positive", "dimension": "understand", "claim": "The local contract clearly combines blank-name fallback with trimming.", "evidence_refs": ["S1-A1"], "source": {"kind": "direct", "attempt_id": "a-s1-01", "parent_observation_id": null}},
+      {"observation_id": "o-s1-verify-01", "occurrence_id": "occ-s1-verify", "polarity": "positive", "dimension": "verify", "claim": "A focused deterministic test is supplied for the change.", "evidence_refs": ["S1-A2"], "source": {"kind": "direct", "attempt_id": "a-s1-01", "parent_observation_id": null}}
+    ]
+  },
+  {
+    "schema_version": "code-friction-11.eval.v1",
+    "evaluation_id": "b2d9a63e-1f74-4c8a-95e0-7ab3d6f2184c",
+    "evaluator_id": "v2-run-b",
+    "scenario_id": "S2-scattered",
+    "requested_model": "gpt-6-luna",
+    "requested_effort": "high",
+    "observed_model": "unknown",
+    "observed_effort": "unknown",
+    "elapsed_seconds": "unknown",
+    "input_tokens": "unknown",
+    "output_tokens": "unknown",
+    "task_status": "planned",
+    "completion_claim": false,
+    "applicability": "applicable",
+    "environment": {
+      "status": "available",
+      "friction_class": "code",
+      "notes": "The supplied files include the relevant application layers and focused check."
+    },
+    "ratings": {
+      "locate": {"rating": "manageable", "friction_class": "code", "reason": "The variable, consumer path, and test span config.js, retry.js, api/client.js, and the focused test."},
+      "understand": {"rating": "manageable", "friction_class": "code", "reason": "The config value flows through request into withRetries, and the default and caller contract must remain compatible."},
+      "verify": {"rating": "manageable", "friction_class": "code", "reason": "The available test covers the default, while the rename and request path require targeted coverage or contract inspection."}
+    },
+    "observations": [
+      {"observation_id": "o-s2-locate-01", "occurrence_id": "occ-s2-locate", "polarity": "negative", "dimension": "locate", "claim": "The requested rename crosses configuration, retry consumption, request wiring, and test files.", "evidence_refs": ["S2-A1", "S2-A2", "S2-A3", "S2-A4"], "source": {"kind": "direct", "attempt_id": "a-s2-01", "parent_observation_id": null}},
+      {"observation_id": "o-s2-understand-01", "occurrence_id": "occ-s2-understand", "polarity": "negative", "dimension": "understand", "claim": "Preserving the effective retry limit requires following the loaded value through request into withRetries.", "evidence_refs": ["S2-A1", "S2-A2", "S2-A3"], "source": {"kind": "direct", "attempt_id": "a-s2-01", "parent_observation_id": null}},
+      {"observation_id": "o-s2-verify-01", "occurrence_id": "occ-s2-verify", "polarity": "negative", "dimension": "verify", "claim": "The focused test covers only the default and does not directly exercise the renamed environment variable or request path.", "evidence_refs": ["S2-A4"], "source": {"kind": "direct", "attempt_id": "a-s2-01", "parent_observation_id": null}}
+    ]
+  },
+  {
+    "schema_version": "code-friction-11.eval.v1",
+    "evaluation_id": "c4a8e2f7-6b13-49d0-a5c9-2e7b1d843f60",
+    "evaluator_id": "v2-run-b",
+    "scenario_id": "S3-hidden-dependency",
+    "requested_model": "gpt-6-luna",
+    "requested_effort": "high",
+    "observed_model": "unknown",
+    "observed_effort": "unknown",
+    "elapsed_seconds": "unknown",
+    "input_tokens": "unknown",
+    "output_tokens": "unknown",
+    "task_status": "planned",
+    "completion_claim": false,
+    "applicability": "applicable",
+    "environment": {
+      "status": "available",
+      "friction_class": "code",
+      "notes": "The complete synthetic workspace is supplied and available for inspection."
+    },
+    "ratings": {
+      "locate": {"rating": "difficult", "friction_class": "code", "reason": "The normalizer has both cache and audit identity consumers, including a separate audit module that must be found and checked."},
+      "understand": {"rating": "difficult", "friction_class": "code", "reason": "Slash preservation changes identities across cache and audit paths while colon removal remains a legacy compatibility contract."},
+      "verify": {"rating": "difficult", "friction_class": "code", "reason": "Verification must cover both cache and audit identities plus legacy colon behavior; the supplied test covers only the cache legacy case."}
+    },
+    "observations": [
+      {"observation_id": "o-s3-locate-01", "occurrence_id": "occ-s3-locate", "polarity": "negative", "dimension": "locate", "claim": "The shared normalizer has two identity-sensitive consumers in separate modules.", "evidence_refs": ["S3-A1", "S3-A2", "S3-A3"], "source": {"kind": "direct", "attempt_id": "a-s3-01", "parent_observation_id": null}},
+      {"observation_id": "o-s3-understand-01", "occurrence_id": "occ-s3-understand", "polarity": "negative", "dimension": "understand", "claim": "The change must preserve colon removal while changing slash semantics for both cache and audit identities.", "evidence_refs": ["S3-A1", "S3-A2", "S3-A3"], "source": {"kind": "direct", "attempt_id": "a-s3-01", "parent_observation_id": null}},
+      {"observation_id": "o-s3-verify-01", "occurrence_id": "occ-s3-verify", "polarity": "negative", "dimension": "verify", "claim": "The existing check covers cache colon compatibility but neither slash preservation nor audit identity.", "evidence_refs": ["S3-A3", "S3-A4"], "source": {"kind": "direct", "attempt_id": "a-s3-01", "parent_observation_id": null}}
+    ]
+  },
+  {
+    "schema_version": "code-friction-11.eval.v1",
+    "evaluation_id": "d1f583b9-27a4-4e6c-90d8-5b2a7c146ef3",
+    "evaluator_id": "v2-run-b",
+    "scenario_id": "S4-unavailable-test-env",
+    "requested_model": "gpt-6-luna",
+    "requested_effort": "high",
+    "observed_model": "unknown",
+    "observed_effort": "unknown",
+    "elapsed_seconds": "unknown",
+    "input_tokens": "unknown",
+    "output_tokens": "unknown",
+    "task_status": "partial",
+    "completion_claim": false,
+    "applicability": "applicable",
+    "environment": {
+      "status": "unavailable",
+      "friction_class": "environment",
+      "notes": "The required corp-runtime binary is explicitly absent, so the supplied test cannot run here."
+    },
+    "ratings": {
+      "locate": {"rating": "easy", "friction_class": "code", "reason": "parseCurrency is the explicit local target and the supplied test identifies its use."},
+      "understand": {"rating": "manageable", "friction_class": "code", "reason": "The optional locale must add sv-SE handling while preserving the existing en-US default and numeric behavior."},
+      "verify": {"rating": "not-assessable", "friction_class": "environment", "reason": "The required corp-runtime test binary is unavailable, so the intended deterministic check cannot be run."}
+    },
+    "observations": [
+      {"observation_id": "o-s4-locate-01", "occurrence_id": "occ-s4-locate", "polarity": "positive", "dimension": "locate", "claim": "The target function and its focused test are clearly identified.", "evidence_refs": ["S4-A1", "S4-A2"], "source": {"kind": "direct", "attempt_id": "a-s4-01", "parent_observation_id": null}},
+      {"observation_id": "o-s4-understand-01", "occurrence_id": "occ-s4-understand", "polarity": "negative", "dimension": "understand", "claim": "The locale extension has an explicit default-preservation requirement and a supplied sv-SE case.", "evidence_refs": ["S4-A1", "S4-A2"], "source": {"kind": "direct", "attempt_id": "a-s4-01", "parent_observation_id": null}},
+      {"observation_id": "o-s4-verify-01", "occurrence_id": "occ-s4-verify", "polarity": "negative", "dimension": "verify", "claim": "Verification is blocked by the absent proprietary runtime.", "evidence_refs": ["S4-A2", "S4-A3"], "source": {"kind": "direct", "attempt_id": "a-s4-01", "parent_observation_id": null}}
+    ]
+  },
+  {
+    "schema_version": "code-friction-11.eval.v1",
+    "evaluation_id": "f8b2c6d1-4e97-43a5-b0f2-6c1d9e784a35",
+    "evaluator_id": "v2-run-b",
+    "scenario_id": "S5-failed-aborted",
+    "requested_model": "gpt-6-luna",
+    "requested_effort": "high",
+    "observed_model": "unknown",
+    "observed_effort": "unknown",
+    "elapsed_seconds": "unknown",
+    "input_tokens": "unknown",
+    "output_tokens": "unknown",
+    "task_status": "partial",
+    "completion_claim": false,
+    "applicability": "applicable",
+    "environment": {
+      "status": "available",
+      "friction_class": "code",
+      "notes": "The test is available, while the supplied worktree explicitly contains an incomplete edit."
+    },
+    "ratings": {
+      "locate": {"rating": "easy", "friction_class": "code", "reason": "The partial edit is in enqueue and the focused regression test is supplied."},
+      "understand": {"rating": "manageable", "friction_class": "code", "reason": "The promise must be shared only while pending and cleaned up on both resolve and reject."},
+      "verify": {"rating": "manageable", "friction_class": "code", "reason": "The available test checks later success retry, while rejection cleanup needs a small additional targeted case."}
+    },
+    "observations": [
+      {"observation_id": "o-s5-locate-01", "occurrence_id": "occ-s5-locate", "polarity": "positive", "dimension": "locate", "claim": "The interrupted implementation and its regression target are both explicit.", "evidence_refs": ["S5-A1", "S5-A2"], "source": {"kind": "direct", "attempt_id": "a-s5-01", "parent_observation_id": null}},
+      {"observation_id": "o-s5-understand-01", "occurrence_id": "occ-s5-understand", "polarity": "negative", "dimension": "understand", "claim": "Correctness depends on promise identity during flight and release on either settlement outcome.", "evidence_refs": ["S5-A1"], "source": {"kind": "direct", "attempt_id": "a-s5-01", "parent_observation_id": null}},
+      {"observation_id": "o-s5-verify-01", "occurrence_id": "occ-s5-verify", "polarity": "negative", "dimension": "verify", "claim": "The supplied regression test exercises successful later retry but not reject-path cleanup.", "evidence_refs": ["S5-A2"], "source": {"kind": "direct", "attempt_id": "a-s5-01", "parent_observation_id": null}}
+    ]
+  },
+  {
+    "schema_version": "code-friction-11.eval.v1",
+    "evaluation_id": "a3e9d742-5c18-4fb0-86d1-2b7e4c905af6",
+    "evaluator_id": "v2-run-b",
+    "scenario_id": "S6-qa",
+    "requested_model": "gpt-6-luna",
+    "requested_effort": "high",
+    "observed_model": "unknown",
+    "observed_effort": "unknown",
+    "elapsed_seconds": "unknown",
+    "input_tokens": "unknown",
+    "output_tokens": "unknown",
+    "task_status": "qa_only",
+    "completion_claim": false,
+    "applicability": "not_applicable",
+    "environment": {
+      "status": "available",
+      "friction_class": "not_applicable",
+      "notes": "This is a pure ownership question and requests no code change."
+    },
+    "ratings": {
+      "locate": {"rating": "not-assessable", "friction_class": "not_applicable", "reason": "The task is a pure ownership question rather than an implementation change."},
+      "understand": {"rating": "not-assessable", "friction_class": "not_applicable", "reason": "The task is a pure ownership question rather than an implementation change."},
+      "verify": {"rating": "not-assessable", "friction_class": "not_applicable", "reason": "There is no requested code change to verify."}
+    },
+    "observations": []
+  },
+  {
+    "schema_version": "code-friction-11.eval.v1",
+    "evaluation_id": "9c5f1a8e-3d64-42b7-a0e9-6f2c8d174b53",
+    "evaluator_id": "v2-run-b",
+    "scenario_id": "S7-before",
+    "requested_model": "gpt-6-luna",
+    "requested_effort": "high",
+    "observed_model": "unknown",
+    "observed_effort": "unknown",
+    "elapsed_seconds": "unknown",
+    "input_tokens": "unknown",
+    "output_tokens": "unknown",
+    "task_status": "planned",
+    "completion_claim": false,
+    "applicability": "applicable",
+    "environment": {
+      "status": "available",
+      "friction_class": "code",
+      "notes": "The supplied Node test is the intended deterministic check."
+    },
+    "ratings": {
+      "locate": {"rating": "easy", "friction_class": "code", "reason": "The notify function and its focused test are in the supplied files."},
+      "understand": {"rating": "manageable", "friction_class": "code", "reason": "The option must control two explicit channel branches while preserving the default payload contract."},
+      "verify": {"rating": "manageable", "friction_class": "code", "reason": "The deterministic check is available, but false behavior for every channel and true/omitted compatibility need additional focused cases."}
+    },
+    "observations": [
+      {"observation_id": "o-s7b-locate-01", "occurrence_id": "occ-s7b-locate", "polarity": "positive", "dimension": "locate", "claim": "The single notify function contains both channel payload branches.", "evidence_refs": ["S7B-A1"], "source": {"kind": "direct", "attempt_id": "a-s7b-01", "parent_observation_id": null}},
+      {"observation_id": "o-s7b-understand-01", "occurrence_id": "occ-s7b-understand", "polarity": "negative", "dimension": "understand", "claim": "The new option must preserve current payloads while changing tags in both email and SMS branches.", "evidence_refs": ["S7B-A1"], "source": {"kind": "direct", "attempt_id": "a-s7b-01", "parent_observation_id": null}},
+      {"observation_id": "o-s7b-verify-01", "occurrence_id": "occ-s7b-verify", "polarity": "negative", "dimension": "verify", "claim": "The supplied test covers only default email behavior, not false mode or SMS.", "evidence_refs": ["S7B-A2"], "source": {"kind": "direct", "attempt_id": "a-s7b-01", "parent_observation_id": null}}
+    ]
+  },
+  {
+    "schema_version": "code-friction-11.eval.v1",
+    "evaluation_id": "2b7e4d90-6a13-48f5-c1e8-3d9a7042bf65",
+    "evaluator_id": "v2-run-b",
+    "scenario_id": "S7-after",
+    "requested_model": "gpt-6-luna",
+    "requested_effort": "high",
+    "observed_model": "unknown",
+    "observed_effort": "unknown",
+    "elapsed_seconds": "unknown",
+    "input_tokens": "unknown",
+    "output_tokens": "unknown",
+    "task_status": "planned",
+    "completion_claim": false,
+    "applicability": "applicable",
+    "environment": {
+      "status": "available",
+      "friction_class": "code",
+      "notes": "The supplied Node test is the intended deterministic check."
+    },
+    "ratings": {
+      "locate": {"rating": "manageable", "friction_class": "code", "reason": "The exported function delegates through the shared payloadFor helper and channel field map in one file."},
+      "understand": {"rating": "manageable", "friction_class": "code", "reason": "The option must be threaded through the shared payload path without changing the normalized channel-field contract."},
+      "verify": {"rating": "manageable", "friction_class": "code", "reason": "The available check is direct, but both channels and includeTags false/default behavior need targeted coverage."}
+    },
+    "observations": [
+      {"observation_id": "o-s7a-locate-01", "occurrence_id": "occ-s7a-locate", "polarity": "negative", "dimension": "locate", "claim": "The requested behavior sits across notify, payloadFor, and the shared channel field map.", "evidence_refs": ["S7A-A1"], "source": {"kind": "direct", "attempt_id": "a-s7a-01", "parent_observation_id": null}},
+      {"observation_id": "o-s7a-understand-01", "occurrence_id": "occ-s7a-understand", "polarity": "negative", "dimension": "understand", "claim": "A shared payload path means the option must preserve both channel mappings while conditionally omitting tags.", "evidence_refs": ["S7A-A1"], "source": {"kind": "direct", "attempt_id": "a-s7a-01", "parent_observation_id": null}},
+      {"observation_id": "o-s7a-verify-01", "occurrence_id": "occ-s7a-verify", "polarity": "negative", "dimension": "verify", "claim": "The supplied test covers only default email behavior and leaves shared SMS and omission behavior untested.", "evidence_refs": ["S7A-A2"], "source": {"kind": "direct", "attempt_id": "a-s7a-01", "parent_observation_id": null}}
+    ]
+  }
+]

@@ -1,0 +1,147 @@
+{
+  "packet_version": "code-friction-11.scenarios.v2",
+  "instruction": "Assess only the requested task and the synthetic files supplied here.",
+  "scenarios": [
+    {
+      "id": "S1-straightforward",
+      "title": "Single-symbol default",
+      "kind": "implementation",
+      "task": "Change displayName so a missing or blank user name returns \"Anonymous\" while preserving the current trimmed-name behavior. Add or update the focused test.",
+      "pair_id": null,
+      "environment": {"status": "available", "notes": "The supplied Node test is the intended deterministic check."},
+      "files": [
+        {"path": "src/label.js", "content": "export function displayName(user) {\n  return user.name.trim();\n}\n"},
+        {"path": "test/label.test.js", "content": "import test from 'node:test';\nimport assert from 'node:assert/strict';\nimport { displayName } from '../src/label.js';\n\ntest('trims a name', () => assert.equal(displayName({ name: ' Ada ' }), 'Ada'));\n"}
+      ],
+      "anchors": [
+        {"id": "S1-A1", "path": "src/label.js", "symbol": "displayName", "note": "Only production symbol."},
+        {"id": "S1-A2", "path": "test/label.test.js", "symbol": "trims a name", "note": "Focused available check."}
+      ]
+    },
+    {
+      "id": "S2-scattered",
+      "title": "Configuration crosses three files",
+      "kind": "implementation",
+      "task": "Rename the retry environment variable from RETRY_LIMIT to APP_RETRY_LIMIT, preserve the default of 3, and update the request path and focused test so the effective retry limit remains unchanged for callers.",
+      "pair_id": null,
+      "environment": {"status": "available", "notes": "The supplied files include a focused test and all relevant application layers."},
+      "files": [
+        {"path": "src/config.js", "content": "export function loadConfig(env) {\n  return { retryLimit: Number(env.RETRY_LIMIT ?? 3) };\n}\n"},
+        {"path": "src/retry.js", "content": "export async function withRetries(operation, retryLimit) {\n  let attempt = 0;\n  while (attempt <= retryLimit) {\n    try { return await operation(); } catch (error) {\n      if (attempt === retryLimit) throw error;\n      attempt += 1;\n    }\n  }\n}\n"},
+        {"path": "src/api/client.js", "content": "import { loadConfig } from '../config.js';\nimport { withRetries } from '../retry.js';\n\nexport function request(fetcher, env) {\n  const { retryLimit } = loadConfig(env);\n  return withRetries(() => fetcher('/items'), retryLimit);\n}\n"},
+        {"path": "test/config.test.js", "content": "import test from 'node:test';\nimport assert from 'node:assert/strict';\nimport { loadConfig } from '../src/config.js';\n\ntest('defaults to three retries', () => assert.equal(loadConfig({}).retryLimit, 3));\n"}
+      ],
+      "anchors": [
+        {"id": "S2-A1", "path": "src/config.js", "symbol": "loadConfig", "note": "Environment variable and default."},
+        {"id": "S2-A2", "path": "src/retry.js", "symbol": "withRetries", "note": "Consumer contract for retry limit."},
+        {"id": "S2-A3", "path": "src/api/client.js", "symbol": "request", "note": "Application path passing the value."},
+        {"id": "S2-A4", "path": "test/config.test.js", "symbol": "defaults to three retries", "note": "Focused but incomplete coverage."}
+      ]
+    },
+    {
+      "id": "S3-hidden-dependency",
+      "title": "Slash normalization has an indirect consumer",
+      "kind": "implementation",
+      "task": "Permit slash characters in future resource IDs by changing normalizeResourceId to trim whitespace and lowercase without removing slashes, while preserving the existing colon-removal behavior for legacy IDs. Preserve cache identity and audit event identity, then verify the change.",
+      "pair_id": null,
+      "environment": {"status": "available", "notes": "The supplied files are the complete synthetic workspace for this task."},
+      "files": [
+        {"path": "src/ids.js", "content": "export function normalizeResourceId(value) {\n  return value.trim().toLowerCase().replaceAll('/', '').replaceAll(':', '');\n}\n"},
+        {"path": "src/cache/key.js", "content": "import { normalizeResourceId } from '../ids.js';\nexport function cacheKey(resourceId) {\n  return `resource:${normalizeResourceId(resourceId)}`;\n}\n"},
+        {"path": "src/audit/event.js", "content": "import { normalizeResourceId } from '../ids.js';\nexport function auditResource(resourceId, action) {\n  return { action, resourceId: normalizeResourceId(resourceId), version: 1 };\n}\n"},
+        {"path": "test/resource-id.test.js", "content": "import test from 'node:test';\nimport assert from 'node:assert/strict';\nimport { cacheKey } from '../src/cache/key.js';\n\ntest('cache key is stable', () => assert.equal(cacheKey(' ABC:1 '), 'resource:abc1'));\n"}
+      ],
+      "anchors": [
+        {"id": "S3-A1", "path": "src/ids.js", "symbol": "normalizeResourceId", "note": "Current code removes slash and colon; the task removes only the slash removal."},
+        {"id": "S3-A2", "path": "src/cache/key.js", "symbol": "cacheKey", "note": "Direct cache identity consumer."},
+        {"id": "S3-A3", "path": "src/audit/event.js", "symbol": "auditResource", "note": "Indirect audit identity consumer."},
+        {"id": "S3-A4", "path": "test/resource-id.test.js", "symbol": "cache key is stable", "note": "Existing test covers colon legacy compatibility but not slash preservation."}
+      ]
+    },
+    {
+      "id": "S4-unavailable-test-env",
+      "title": "Verification blocked by an unavailable runtime",
+      "kind": "implementation",
+      "task": "Add an optional locale argument to parseCurrency while preserving the current en-US default, and update the supplied test for sv-SE formatting.",
+      "pair_id": null,
+      "environment": {"status": "unavailable", "notes": "The owning project check requires the proprietary corp-runtime binary, which is intentionally absent. Source and a test are supplied for inspection only."},
+      "files": [
+        {"path": "src/currency.ts", "content": "export function parseCurrency(input: string): number {\n  return Number(input.replace(',', '.'));\n}\n"},
+        {"path": "test/currency.test.ts", "content": "import { parseCurrency } from '../src/currency';\n\ncorpTest('parses sv-SE currency', () => {\n  expect(parseCurrency('1 234,50', 'sv-SE')).toBe(1234.5);\n});\n"},
+        {"path": "RUNNING-TESTS.md", "content": "Run corp-runtime test --project billing. The binary is supplied by the owning project environment.\n"}
+      ],
+      "anchors": [
+        {"id": "S4-A1", "path": "src/currency.ts", "symbol": "parseCurrency", "note": "Local code target."},
+        {"id": "S4-A2", "path": "test/currency.test.ts", "symbol": "parses sv-SE currency", "note": "Target test cannot run here."},
+        {"id": "S4-A3", "path": "RUNNING-TESTS.md", "symbol": "corp-runtime", "note": "Explicit unavailable environment dependency."}
+      ]
+    },
+    {
+      "id": "S5-failed-aborted",
+      "title": "Continue an aborted idempotency change",
+      "kind": "partial_work",
+      "task": "Finish the interrupted idempotency change for enqueue: duplicate job IDs must share one in-flight promise, and the ID must be released after resolve or reject so a later retry can run. The current worktree contains a partial edit from an aborted attempt.",
+      "pair_id": null,
+      "environment": {"status": "available", "notes": "The supplied test is available, but the current work is explicitly incomplete."},
+      "files": [
+        {"path": "src/queue.js", "content": "const pending = new Map();\n\nexport function enqueue(job, dispatch) {\n  if (pending.has(job.id)) return pending.get(job.id);\n  const promise = dispatch(job);\n  pending.set(job.id, promise);\n  // Aborted attempt left cleanup unfinished.\n  return promise;\n}\n"},
+        {"path": "test/queue.test.js", "content": "import test from 'node:test';\nimport assert from 'node:assert/strict';\nimport { enqueue } from '../src/queue.js';\n\ntest('deduplicates only while a job is in flight', async () => {\n  let calls = 0;\n  const dispatch = async () => { calls += 1; return calls; };\n  assert.equal(await enqueue({ id: 'x' }, dispatch), 1);\n  assert.equal(await enqueue({ id: 'x' }, dispatch), 2);\n  assert.equal(calls, 2);\n});\n"}
+      ],
+      "anchors": [
+        {"id": "S5-A1", "path": "src/queue.js", "symbol": "enqueue", "note": "Partial edit and missing settle cleanup."},
+        {"id": "S5-A2", "path": "test/queue.test.js", "symbol": "deduplicates only while a job is in flight", "note": "Regression target for both success and later retry."}
+      ]
+    },
+    {
+      "id": "S6-qa",
+      "title": "Pure ownership question",
+      "kind": "qa",
+      "task": "Answer only: which function calculates retry backoff, which module calls it, and which supplied test names that behavior? Do not edit code.",
+      "pair_id": null,
+      "environment": {"status": "available", "notes": "This is a documentation question, not an implementation task."},
+      "files": [
+        {"path": "src/backoff.js", "content": "export function calculateDelay(attempt) {\n  return Math.min(1000 * 2 ** attempt, 30000);\n}\n"},
+        {"path": "src/worker.js", "content": "import { calculateDelay } from './backoff.js';\nexport function nextRetry(attempt) {\n  return calculateDelay(attempt);\n}\n"},
+        {"path": "test/backoff.test.js", "content": "import test from 'node:test';\nimport assert from 'node:assert/strict';\nimport { calculateDelay } from '../src/backoff.js';\n\ntest('caps exponential retry delay', () => assert.equal(calculateDelay(6), 30000));\n"}
+      ],
+      "anchors": [
+        {"id": "S6-A1", "path": "src/backoff.js", "symbol": "calculateDelay", "note": "Function named by the question."},
+        {"id": "S6-A2", "path": "src/worker.js", "symbol": "nextRetry", "note": "Caller named by the question."},
+        {"id": "S6-A3", "path": "test/backoff.test.js", "symbol": "caps exponential retry delay", "note": "Test named by the question."}
+      ]
+    },
+    {
+      "id": "S7-before",
+      "title": "Paired simplification: duplicated notification branches",
+      "kind": "paired_simplification",
+      "task": "Add an includeTags option to notify. When false, omit tags from every channel payload; when true or omitted, preserve current payloads. Update focused tests.",
+      "pair_id": "S7-simplification",
+      "environment": {"status": "available", "notes": "The supplied Node test is the intended deterministic check."},
+      "files": [
+        {"path": "src/notify.js", "content": "export function notify(channel, message, tags, options = {}) {\n  if (channel === 'email') {\n    return { to: message.to, body: message.body, tags };\n  }\n  if (channel === 'sms') {\n    return { number: message.number, text: message.text, tags };\n  }\n  throw new Error('unknown channel');\n}\n"},
+        {"path": "test/notify.test.js", "content": "import test from 'node:test';\nimport assert from 'node:assert/strict';\nimport { notify } from '../src/notify.js';\n\ntest('preserves email tags by default', () => assert.deepEqual(notify('email', { to: 'a', body: 'b' }, ['urgent']), { to: 'a', body: 'b', tags: ['urgent'] }));\n"}
+      ],
+      "anchors": [
+        {"id": "S7B-A1", "path": "src/notify.js", "symbol": "notify", "note": "Duplicated per-channel payload construction with unconditional tags."},
+        {"id": "S7B-A2", "path": "test/notify.test.js", "symbol": "preserves email tags by default", "note": "Focused default behavior test."}
+      ]
+    },
+    {
+      "id": "S7-after",
+      "title": "Paired simplification: normalized notification payload",
+      "kind": "paired_simplification",
+      "task": "Add an includeTags option to notify. When false, omit tags from every channel payload; when true or omitted, preserve current payloads. Update focused tests.",
+      "pair_id": "S7-simplification",
+      "environment": {"status": "available", "notes": "The supplied Node test is the intended deterministic check."},
+      "files": [
+        {"path": "src/notify.js", "content": "const fields = { email: ['to', 'body'], sms: ['number', 'text'] };\n\nfunction payloadFor(channel, message, tags) {\n  const names = fields[channel];\n  if (!names) throw new Error('unknown channel');\n  const payload = Object.fromEntries(names.map((name) => [name, message[name]]));\n  payload.tags = tags;\n  return payload;\n}\n\nexport function notify(channel, message, tags, options = {}) {\n  return payloadFor(channel, message, tags);\n}\n"},
+        {"path": "test/notify.test.js", "content": "import test from 'node:test';\nimport assert from 'node:assert/strict';\nimport { notify } from '../src/notify.js';\n\ntest('preserves email tags by default', () => assert.deepEqual(notify('email', { to: 'a', body: 'b' }, ['urgent']), { to: 'a', body: 'b', tags: ['urgent'] }));\n"}
+      ],
+      "anchors": [
+        {"id": "S7A-A1", "path": "src/notify.js", "symbol": "notify/payloadFor", "note": "Normalized shared payload path with unconditional tags."},
+        {"id": "S7A-A2", "path": "test/notify.test.js", "symbol": "preserves email tags by default", "note": "Focused default behavior test."}
+      ]
+    }
+  ]
+}
+
