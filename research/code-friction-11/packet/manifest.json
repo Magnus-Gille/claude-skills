@@ -1,0 +1,11 @@
+{
+  "packet_version": "code-friction-11.v1",
+  "purpose": "Blind public-safe evaluator input for issue #11",
+  "files": [
+    "evaluator-instructions.md",
+    "rubric.md",
+    "scenarios.json"
+  ],
+  "sha256": "See analysis/frozen-manifest.json"
+}
+
