@@ -11,6 +11,7 @@ Audit only repositories affected by this session, preserve unrelated work, and c
 - When execution state or project truth changed, read [persistence](references/persistence.md). Skip state rewrites for read-only inspection.
 - Only for personal notes/workspaces with capture/tasks conventions, read [personal-workspace](references/personal-workspace.md).
 - For every close, read [report-contract](references/report-contract.md) and return `scripts/render-report.py` output verbatim. Preserve all fields in quick mode; missing evidence is not a clean result.
+- For explicitly enabled code-friction capture, read [code-friction](references/code-friction.md). Full Close may prepare a terminal assessment; quick Close only flushes records already in the local outbox.
 
 All script paths are relative to the skill root. Preserve a reversal recipe and audit event for mutations where required by project policy.
 
@@ -106,4 +107,10 @@ Use the same bounded affected-repository set and refresh each tracking remote be
 4. Final fetch plus `final-recheck.sh compare`; reconcile once or report active concurrent work
 5. Canonical rendered report using `mode: "quick"`; all sections remain present
 
-Skip documentation review, skill improvements, Munin updates, and detailed cleanup.
+When code-friction capture is explicitly enabled, quick mode may flush records already prepared in
+the local outbox. It creates no new observation or assessment. This evidence is advisory; report
+local or remote save status only in the existing Persistence section and do not change Close status
+or readiness fields because of it.
+
+Skip documentation review, skill improvements, project status updates in Munin, and detailed
+cleanup. The explicitly enabled code-friction outbox flush above is the only quick-mode Munin write.
