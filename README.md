@@ -24,6 +24,7 @@ After install, restart Claude Code (or wait for the next session) and the skills
 |-------|--------------|
 | `/ship-it` | Deliver a scoped task through independent model review, green CI/CD, merge and verified production; shared by Codex, Claude Code and Pi. |
 | `/close` | Session closing checklist — Git/worktree audit, handoff persistence, cleanup, optional Munin sync, and one deterministic cross-agent report format. |
+| `/code-friction` | Opt-in capture of a few concrete code-changeability observations during a coding task, with explicit privacy bounds and Close handoff. |
 | `/commit` | Standardized git commit workflow: author verification, diff review, security check, conventional message, push. |
 | `/debate` | Adversarial debate against a cross-model reviewer (Codex or Antigravity/agy) to stress-test a draft, plan, or design before finalizing. Multi-round critique with self-review and summary. Backend chosen via `--model codex\|agy` (defaults to codex). |
 | `/eli5` | Re-explain the previous assistant turn in plain language — no jargon, no unexplained acronyms, short sentences. |
@@ -41,8 +42,10 @@ Some skills shell out to external CLIs or MCP servers:
 - **`user-test-memory`** — requires the [Munin memory](https://github.com/Magnus-Gille/munin-memory) MCP server registered with Claude Code.
 - **`issues`** — requires the [GitHub CLI](https://cli.github.com/) (`gh`).
 - **`security-review`** — works standalone; suggested findings can be cross-checked with Codex CLI if available.
+- **`close` code-friction capture** — opt-in; requires the `memory_code_health` Munin tool to flush records. Without it, sanitized records remain explicitly unsaved in the private local outbox. The canonical report renderer and capture checks use Python 3.10 or newer.
+- **`code-friction`** — opt-in only; local capture requires Python 3.10 or newer. Remote persistence uses the same `memory_code_health` tool as `/close` and requires an exact authorized namespace.
 
-The remaining skills (`close`, `commit`, `eli5`) only need standard `git` and Claude Code itself.
+The remaining skills (`commit`, `eli5`) only need standard `git` and Claude Code itself.
 
 ## Codex companion skills
 
