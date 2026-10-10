@@ -25,8 +25,8 @@ Use only opaque `ref:...` values from the owning repository's evidence registry 
 supporting, counter, and rating references. If a required source cannot be referenced safely, leave
 that rating not-assessable or skip capture. Store no code, diff, transcript, prompt, user text,
 private path, URL, credential, or raw error. A summary is a sanitized paraphrase of at most 280
-characters. The helper rejects unknown/raw fields and obvious locators, but cannot prove a summary
-safe; review it before preparation.
+characters. The helper rejects unknown/raw fields and obvious locators, including absolute paths
+next to ordinary punctuation, but cannot prove arbitrary prose safe; review it before preparation.
 
 The input is one JSON object matching these fields: exact writable `namespace` and optional explicit
 `classification` (`public`, `internal`, `client-confidential`, or `client-restricted`); task identity (`repo_owner`, `repo_name`,
@@ -42,8 +42,10 @@ optional and unknown time/token values stay null. An assessment may include `obs
 already retained observations that need no payload recreation. To revise a terminal assessment,
 include a registered `correction_ref`; the helper requires its predecessor to be acknowledged,
 then appends a new record with the stored predecessor's exact `updated_at` as `expected_updated_at`.
-An uncertain predecessor must be resolved first. Use exactly the canonical field names and enum
-values in the v1 schema.
+An uncertain predecessor must be resolved first. A correction inherits the predecessor's
+classification when none is selected; an explicit equal or more restrictive classification is
+preserved, and a downgrade is rejected. Existing observation requests retain their original
+classification. Use exactly the canonical field names and enum values in the v1 schema.
 
 ### Prepare, flush, and retain
 
@@ -82,7 +84,11 @@ minimal opaque task/attempt/occurrence identity, namespace, fingerprints, and co
 needed for safe replay and correction. Never calculate a replacement expiry: server retention
 metadata is authoritative. If the API returns `record_deleted`, `payload_expired`, `classification_denied`,
 or `access_denied`, use `refuse` with the matching reason and do not enter an automatic retry
-loop. The item remains clearly unsaved until its local expiry or an explicit later decision.
+loop. A refused observation also marks pending assessments and parent/Close observations that cite
+it as unsaved with a bounded `source_refused` dependency reason; they are excluded from later flushes.
+An unsaved or expired observation cannot be used to prepare a new assessment or parent reference.
+Acknowledged retained observations and pending sources that precede dependents in the same flush
+remain valid. These items remain clearly unsaved until local expiry or an explicit later decision.
 
 Unsaved payloads remain in the private outbox for at most 30 days from capture. Run `expire` during
 Close; `prepare` and `pending` also reap expired entries. Acknowledged metadata is removed at the

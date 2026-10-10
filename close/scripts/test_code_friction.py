@@ -163,6 +163,76 @@ class CodeFrictionTests(unittest.TestCase):
         with self.assertRaisesRegex(friction.EvidenceError, "reference their source"):
             friction.build_records(data)
 
+    def test_unsaved_observation_cannot_be_used_as_assessment_or_parent_source(self) -> None:
+        source_capture = capture()
+        source_capture.pop("assessment")
+        friction.prepare(source_capture, self.outbox, STAMP)
+        source_id = friction.pending(self.outbox, STAMP)[0]["record_id"]
+        friction.refuse(self.outbox, source_id, "access_denied")
+
+        assessment_capture = copy.deepcopy(source_capture)
+        assessment_capture["observations"] = []
+        assessment_capture["assessment"] = copy.deepcopy(capture()["assessment"])
+        assessment_capture["assessment"]["observation_keys"] = []
+        assessment_capture["assessment"]["observation_refs"] = [source_id]
+        with self.assertRaisesRegex(friction.EvidenceError, "pending or acknowledged"):
+            friction.prepare(assessment_capture, self.outbox, STAMP)
+
+        parent_capture = copy.deepcopy(source_capture)
+        child = parent_capture["observations"][0]
+        parent = copy.deepcopy(child)
+        parent.update({"attempt_id": "parent-attempt", "parent_attempt_id": None,
+                       "reporter": parent_capture["reporter"],
+                       "actual_worker": parent_capture["actual_worker"],
+                       "source_observation_ref": source_id})
+        parent_capture["observations"] = [parent]
+        with self.assertRaisesRegex(friction.EvidenceError, "pending or acknowledged"):
+            friction.prepare(parent_capture, self.outbox, STAMP)
+
+    def test_replaying_refused_source_does_not_overwrite_status_or_admit_dependent(self) -> None:
+        source_capture = capture()
+        source_capture.pop("assessment")
+        friction.prepare(source_capture, self.outbox, STAMP)
+        source_id = friction.pending(self.outbox, STAMP)[0]["record_id"]
+        friction.refuse(self.outbox, source_id, "access_denied")
+        friction.prepare(source_capture, self.outbox, STAMP)
+        stored = next(entry for entry in friction._load(self.outbox)["entries"]
+                      if entry["record_id"] == source_id)
+        self.assertEqual(stored["status"], "unsaved")
+
+        dependent = copy.deepcopy(source_capture)
+        dependent["assessment"] = copy.deepcopy(capture()["assessment"])
+        dependent["assessment"]["observation_keys"] = []
+        dependent["assessment"]["observation_refs"] = [source_id]
+        with self.assertRaisesRegex(friction.EvidenceError, "pending or acknowledged"):
+            friction.prepare(dependent, self.outbox, STAMP)
+
+    def test_refusing_pending_source_marks_pending_dependents_unsaved_transitively(self) -> None:
+        data = capture()
+        child = data["observations"][0]
+        close_copy = copy.deepcopy(child)
+        close_copy.update({
+            "attempt_id": "parent-attempt", "parent_attempt_id": None,
+            "reporter": data["reporter"], "actual_worker": data["actual_worker"],
+            "source_observation_ref": friction._digest_id(
+                data["repo_owner"], data["repo_name"], data["task_id"],
+                "hidden-consumer", "child-attempt", "observation"),
+        })
+        data["observations"].append(close_copy)
+        friction.prepare(data, self.outbox, STAMP)
+        observation = next(item for item in friction.pending(self.outbox, STAMP)
+                           if item["record_kind"] == "observation"
+                           and item["request"]["record"]["attempt_id"] == "child-attempt")
+        friction.refuse(self.outbox, observation["record_id"], "access_denied")
+
+        self.assertEqual(friction.pending(self.outbox, STAMP), [])
+        entries = friction._load(self.outbox)["entries"]
+        dependent_records = [entry for entry in entries if entry["record_id"] != observation["record_id"]]
+        self.assertTrue(dependent_records)
+        self.assertTrue(all(entry["status"] == "unsaved" for entry in dependent_records))
+        self.assertTrue(all(entry["refusal_reason"] == "access_denied" for entry in dependent_records))
+        self.assertTrue(all(entry["dependency_reason"] == "source_refused" for entry in dependent_records))
+
     def test_unavailable_environment_only_makes_verify_not_assessable(self) -> None:
         data = capture()
         data["assessment"]["environment"] = "unavailable"
@@ -204,6 +274,22 @@ class CodeFrictionTests(unittest.TestCase):
         with self.assertRaisesRegex(friction.EvidenceError, "private locator"):
             friction.build_records(data)
 
+    def test_punctuation_delimited_absolute_paths_are_rejected_but_relative_paths_are_allowed(self) -> None:
+        for summary in (
+            "The issue was in (/Users/synthetic/private/file.ts).",
+            "The issue was in [/home/synthetic/private/file.ts].",
+            'The issue was in "/private/tmp/example".',
+            'The issue was in (C:\\Users\\synthetic\\private\\file.ts).',
+        ):
+            with self.subTest(summary=summary):
+                data = capture()
+                data["observations"][0]["summary"] = summary
+                with self.assertRaisesRegex(friction.EvidenceError, "private locator"):
+                    friction.build_records(data)
+        data = capture()
+        data["observations"][0]["summary"] = "The issue was in src/feature/module.ts."
+        friction.build_records(data)
+
     def test_exact_replay_reuses_persisted_request_and_idempotency_key(self) -> None:
         data = capture()
         first = friction.prepare(data, self.outbox, STAMP)
@@ -224,6 +310,15 @@ class CodeFrictionTests(unittest.TestCase):
         changed["namespace"] = "projects/another-repo"
         with self.assertRaisesRegex(friction.EvidenceError, "persisted namespace"):
             friction.prepare(changed, self.outbox, STAMP)
+        changed = copy.deepcopy(data)
+        changed["classification"] = "client-confidential"
+        with self.assertRaisesRegex(friction.EvidenceError, "persisted classification"):
+            friction.prepare(changed, self.outbox, STAMP)
+
+    def test_ordinary_observation_replay_cannot_change_classification(self) -> None:
+        data = capture()
+        data.pop("assessment")
+        friction.prepare(data, self.outbox, STAMP)
         changed = copy.deepcopy(data)
         changed["classification"] = "client-confidential"
         with self.assertRaisesRegex(friction.EvidenceError, "persisted classification"):
@@ -267,6 +362,63 @@ class CodeFrictionTests(unittest.TestCase):
         friction.acknowledge(self.outbox, correction_receipt)
         acknowledged_replay = friction.prepare(finalized, self.outbox, STAMP)
         self.assertEqual(acknowledged_replay["replays"][0]["receipt"], correction_receipt)
+
+    def test_correction_classification_is_preserved_and_cannot_be_downgraded(self) -> None:
+        data = capture()
+        data["assessment"].update({"outcome": "partial", "completeness": "partial"})
+        friction.prepare(data, self.outbox, STAMP)
+        prior = next(item for item in friction.pending(self.outbox, STAMP)
+                     if item["record_kind"] == "assessment")
+        friction.acknowledge(self.outbox, {
+            "record_id": prior["record_id"], "collected_at": "2026-10-10T12:00:00.123Z",
+            "expires_at": "2027-04-10T12:00:00.789Z", "updated_at": "2026-10-10T12:00:00.456Z",
+            "classification": "internal",
+        })
+
+        raised = copy.deepcopy(data)
+        raised["assessment"].update({"outcome": "completed", "completeness": "complete",
+                                     "correction_ref": "ref:raised-classification"})
+        raised["classification"] = "client-confidential"
+        lower = copy.deepcopy(data)
+        lower["assessment"].update({"outcome": "completed", "completeness": "complete",
+                                    "correction_ref": "ref:lower-classification"})
+        lower["classification"] = "public"
+        with self.assertRaisesRegex(friction.EvidenceError, "cannot lower classification"):
+            friction.prepare(lower, self.outbox, STAMP)
+
+        friction.prepare(raised, self.outbox, STAMP)
+        corrected = next(item for item in friction.pending(self.outbox, STAMP)
+                         if item["record_kind"] == "assessment")
+        self.assertEqual(corrected["request"]["classification"], "client-confidential")
+        saved_request = copy.deepcopy(corrected["request"])
+        self.assertEqual(friction.prepare(raised, self.outbox, STAMP)["prepared"], 0)
+        self.assertEqual(friction.pending(self.outbox, STAMP)[-1]["request"], saved_request)
+
+    def test_correction_without_classification_inherits_and_same_level_is_preserved(self) -> None:
+        for selected in (None, "internal"):
+            with self.subTest(selected=selected):
+                outbox = Path(self.temp.name) / f"classification-{selected or 'absent'}" / "outbox.json"
+                data = capture()
+                data["assessment"].update({"outcome": "partial", "completeness": "partial"})
+                friction.prepare(data, outbox, STAMP)
+                prior = next(item for item in friction.pending(outbox, STAMP)
+                             if item["record_kind"] == "assessment")
+                friction.acknowledge(outbox, {
+                    "record_id": prior["record_id"], "collected_at": "2026-10-10T12:00:00.123Z",
+                    "expires_at": "2027-04-10T12:00:00.789Z", "updated_at": "2026-10-10T12:00:00.456Z",
+                    "classification": "internal",
+                })
+                corrected = copy.deepcopy(data)
+                corrected["assessment"].update({"outcome": "completed", "completeness": "complete",
+                                                "correction_ref": f"ref:inherit-{selected or 'absent'}"})
+                if selected is None:
+                    corrected.pop("classification")
+                else:
+                    corrected["classification"] = selected
+                friction.prepare(corrected, outbox, STAMP)
+                request = next(item["request"] for item in friction.pending(outbox, STAMP)
+                               if item["record_kind"] == "assessment")
+                self.assertEqual(request["classification"], "internal")
 
     def test_changed_assessment_waits_for_uncertain_predecessor(self) -> None:
         data = capture()
@@ -344,7 +496,8 @@ class CodeFrictionTests(unittest.TestCase):
         friction.prepare(capture(), self.outbox, STAMP)
         item = friction.pending(self.outbox, STAMP)[0]
         friction.refuse(self.outbox, item["record_id"], "classification_denied")
-        friction.prepare(capture(), self.outbox, STAMP)
+        with self.assertRaisesRegex(friction.EvidenceError, "pending or acknowledged"):
+            friction.prepare(capture(), self.outbox, STAMP)
         pending = friction.pending(self.outbox, STAMP)
         self.assertNotIn(item["record_id"], {entry["record_id"] for entry in pending})
         record = next(x for x in friction._load(self.outbox)["entries"] if x["record_id"] == item["record_id"])
@@ -353,8 +506,9 @@ class CodeFrictionTests(unittest.TestCase):
 
     def test_access_denied_is_terminal_and_does_not_loop(self) -> None:
         friction.prepare(capture(), self.outbox, STAMP)
-        for item in friction.pending(self.outbox, STAMP):
-            friction.refuse(self.outbox, item["record_id"], "access_denied")
+        source = next(item for item in friction.pending(self.outbox, STAMP)
+                      if item["record_kind"] == "observation")
+        friction.refuse(self.outbox, source["record_id"], "access_denied")
         self.assertEqual(friction.pending(self.outbox, STAMP), [])
 
     def test_unsaved_payload_expires_after_thirty_days(self) -> None:

@@ -33,8 +33,8 @@ SHA = re.compile(r"^[a-f0-9]{40}$")
 TIME = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:[0-5]\dZ$")
 REAL_INSTANT = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:[0-5]\d(?:\.\d{3})?Z$")
 PRIVATE_TEXT = re.compile(
-    r"(?:https?|file|ssh|ftp)://|```|`|-----BEGIN |(?:^|\s)(?:~/|/Users/|/home/|/private/|/tmp/|/var/)|"
-    r"(?:^|\s)[A-Za-z]:\\|(?:^|\s)[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}|"
+    r"(?:https?|file|ssh|ftp)://|```|`|-----BEGIN |(?:^|[^A-Za-z0-9_])(?:~/|/Users/|/home/|/private/|/tmp/|/var/)|"
+    r"(?:^|[^A-Za-z0-9_])[A-Za-z]:\\|(?:^|\s)[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}|"
     r"\b(?:Bearer|api[_ -]?key|password|secret|token)\s*[:=]",
     re.IGNORECASE,
 )
@@ -382,6 +382,7 @@ def _load(path: Path) -> dict[str, Any]:
     for entry in value["entries"]:
         allowed = {"record_id", "record_kind", "idempotency_key", "captured_at", "status", "task_identity",
                    "occurrence_id", "observed_at", "worker_fingerprint", "request", "receipt", "refusal_reason",
+                   "dependency_reason",
                    "attempt_id", "namespace", "payload_fingerprint", "supersedes_record_id"}
         allowed |= {"assessment_fingerprint", "correction_ref"}
         required = {"record_id", "record_kind", "idempotency_key", "captured_at", "status", "task_identity",
@@ -448,6 +449,10 @@ def _load(path: Path) -> dict[str, Any]:
             if entry["status"] == "unsaved":
                     _need(entry.get("refusal_reason") in {"record_deleted", "classification_denied", "payload_expired", "access_denied", "user_declined"},
                       "unsaved outbox entry has no valid refusal reason")
+                    _need(entry.get("dependency_reason") in {None, "source_refused"},
+                          "unsaved outbox dependency reason is invalid")
+            else:
+                _need("dependency_reason" not in entry, "only unsaved entries may retain a dependency reason")
         elif entry["status"] == "acknowledged":
             _need("request" not in entry and isinstance(entry.get("receipt"), dict),
                   "acknowledged outbox entry must retain only its receipt")
@@ -593,6 +598,10 @@ def _prepare_locked(data: dict[str, Any], records: list[dict[str, Any]], outbox:
 
     task_identity = [records[0]["repo_owner"], records[0]["repo_name"], records[0]["task_id"]] if records else None
     assessment_records = [r for r in records if r["record_kind"] == "assessment"]
+    classification_order = {
+        "public": 0, "internal": 1, "client-confidential": 2, "client-restricted": 3,
+    }
+    raised_correction_in_batch = False
     for record in assessment_records:
         base_id = record["record_id"]
         record["_base_assessment_id"] = base_id
@@ -623,6 +632,19 @@ def _prepare_locked(data: dict[str, Any], records: list[dict[str, Any]], outbox:
             record["_classification"] = same.get("receipt", {}).get("classification",
                                          same.get("request", {}).get("classification"))
             record["_already_persisted"] = same
+            if data.get("classification") is not None:
+                persisted_record = same.get("request", {}).get("record", {})
+                predecessor_id = same.get("supersedes_record_id", persisted_record.get("supersedes_record_id"))
+                predecessor = existing.get(predecessor_id)
+                predecessor_classification = (predecessor.get("receipt", {}).get("classification",
+                                           predecessor.get("request", {}).get("classification"))
+                                              if predecessor else None)
+                correction_classification = same.get("receipt", {}).get("classification",
+                                             same.get("request", {}).get("classification"))
+                if predecessor_classification in classification_order and correction_classification in classification_order:
+                    raised_correction_in_batch = raised_correction_in_batch or (
+                        data["classification"] == correction_classification
+                        and classification_order[correction_classification] > classification_order[predecessor_classification])
             continue
         if lineage:
             heads = [entry for entry in lineage if not any(
@@ -648,7 +670,15 @@ def _prepare_locked(data: dict[str, Any], records: list[dict[str, Any]], outbox:
                                              prefix="ch-correction")
             record["_expected_updated_at"] = predecessor["receipt"]["updated_at"]
             record["_namespace"] = predecessor_namespace
-            record["_classification"] = predecessor["receipt"]["classification"]
+            predecessor_classification = predecessor["receipt"]["classification"]
+            requested_classification = data.get("classification")
+            if requested_classification is not None:
+                _need(classification_order[requested_classification] >= classification_order[predecessor_classification],
+                      "assessment correction cannot lower classification")
+            record["_classification"] = requested_classification or predecessor_classification
+            if requested_classification is not None:
+                raised_correction_in_batch = raised_correction_in_batch or (
+                    classification_order[requested_classification] > classification_order[predecessor_classification])
             record["_supersedes_record_id"] = predecessor["record_id"]
             record["_idempotency_key"] = _idem(record)
         else:
@@ -666,6 +696,15 @@ def _prepare_locked(data: dict[str, Any], records: list[dict[str, Any]], outbox:
                                 **({"receipt": copy.deepcopy(prior["receipt"])} if prior.get("receipt") else {})})
             continue
         key = record["record_id"]
+        old = existing.get(key)
+        if old is not None and record["record_kind"] == "observation":
+            # A correction's classification applies to its new assessment. Existing
+            # observations retain their original exact request or receipt.
+            saved_classification = old.get("receipt", {}).get("classification",
+                                      old.get("request", {}).get("classification"))
+            if data.get("classification") is None or data.get("classification") == saved_classification \
+                    or raised_correction_in_batch:
+                record["_classification"] = saved_classification
         clean_record = {k: v for k, v in record.items() if not k.startswith("_") and k != "_base_assessment_id"}
         idem = record["_idempotency_key"]
         request = {"action": "append", "namespace": record["_namespace"],
@@ -686,7 +725,6 @@ def _prepare_locked(data: dict[str, Any], records: list[dict[str, Any]], outbox:
                 "correction_ref": clean_record.get("correction_ref") if record["record_kind"] == "assessment" else None,
                 "worker_fingerprint": _worker_fingerprint(record["actual_worker"]),
                 "request": request}
-        old = existing.get(key)
         if old is not None:
             _need(old.get("idempotency_key") == item["idempotency_key"], "outbox record identity collision")
             _need(old.get("payload_fingerprint") in {None, item["payload_fingerprint"]},
@@ -697,7 +735,9 @@ def _prepare_locked(data: dict[str, Any], records: list[dict[str, Any]], outbox:
                   "exact replay must use its persisted namespace")
             saved_classification = old.get("receipt", {}).get("classification",
                                    old.get("request", {}).get("classification"))
-            _need(data.get("classification") is None or data.get("classification") == saved_classification,
+            _need((record["record_kind"] == "observation" and raised_correction_in_batch)
+                  or data.get("classification") is None
+                  or data.get("classification") == saved_classification,
                   "exact replay cannot change its persisted classification")
             if old.get("request") is not None:
                 _need(_canonical(old["request"]) == _canonical(item["request"]),
@@ -725,19 +765,29 @@ def _prepare_locked(data: dict[str, Any], records: list[dict[str, Any]], outbox:
           "outbox capacity reached (1024 entries); new evidence remains unsaved and no entries were evicted")
 
     known = {entry["record_id"]: entry for entry in state["entries"]}
-    known.update({record["record_id"]: {
+    batch_indexes = {record["record_id"]: index for index, record in enumerate(records)}
+    for record in records:
+        if record["record_id"] in known:
+            continue
+        known[record["record_id"]] = {
         "record_id": record["record_id"], "record_kind": record["record_kind"],
         "task_identity": [record["repo_owner"], record["repo_name"], record["task_id"]],
         "occurrence_id": record.get("occurrence_id"), "observed_at": record["observed_at"],
         "worker_fingerprint": _worker_fingerprint(record["actual_worker"]),
-    } for record in records})
-    for record in records:
+        "status": "pending",
+        }
+    for record_index, record in enumerate(records):
         if record["record_kind"] == "assessment":
             for observation_ref in record.get("observation_refs", []):
                 source = known.get(observation_ref)
                 _need(source is not None and source.get("record_kind") == "observation"
                       and source.get("task_identity") == [record["repo_owner"], record["repo_name"], record["task_id"]],
                       "assessment observation reference must resolve to a retained observation in this task")
+                _need(source.get("status") in {"pending", "acknowledged"},
+                      "assessment observation reference must be pending or acknowledged; refused or expired sources cannot be used")
+                if observation_ref in batch_indexes:
+                    _need(batch_indexes[observation_ref] < record_index,
+                          "assessment observation source must precede the dependent record in this batch")
         source_ref = record.get("source_observation_ref")
         if source_ref is None:
             continue
@@ -745,6 +795,11 @@ def _prepare_locked(data: dict[str, Any], records: list[dict[str, Any]], outbox:
         source = known.get(source_ref)
         _need(source is not None and source.get("record_kind") == "observation",
               "source observation must already exist in this task's local evidence history")
+        _need(source.get("status") in {"pending", "acknowledged"},
+              "source observation must be pending or acknowledged; refused or expired sources cannot be used")
+        if source_ref in batch_indexes:
+            _need(batch_indexes[source_ref] < record_index,
+                  "source observation must precede the dependent record in this batch")
         _need(source.get("task_identity") == [record["repo_owner"], record["repo_name"], record["task_id"]]
               and source.get("occurrence_id") == record["occurrence_id"],
               "source observation must match repository, task, and occurrence")
@@ -802,6 +857,27 @@ def refuse(outbox: Path, record_id: str, reason: str) -> None:
                 _need(item.get("status") == "pending", "record is not pending")
                 item["status"] = "unsaved"
                 item["refusal_reason"] = reason
+                blocked = {record_id}
+                changed = True
+                while changed:
+                    changed = False
+                    for dependent in state["entries"]:
+                        if dependent.get("status") != "pending" or not dependent.get("request"):
+                            continue
+                        dependent_record = dependent["request"].get("record", {})
+                        references = set(dependent_record.get("observation_refs", []))
+                        source_ref = dependent_record.get("source_observation_ref")
+                        if source_ref is not None:
+                            references.add(source_ref)
+                        supersedes = dependent_record.get("supersedes_record_id")
+                        if supersedes is not None:
+                            references.add(supersedes)
+                        if references & blocked:
+                            dependent["status"] = "unsaved"
+                            dependent["refusal_reason"] = reason
+                            dependent["dependency_reason"] = "source_refused"
+                            blocked.add(dependent["record_id"])
+                            changed = True
                 _save(outbox, state)
                 return
     raise EvidenceError("record_id is not present in the outbox")
