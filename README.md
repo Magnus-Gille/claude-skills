@@ -29,6 +29,7 @@ After install, restart Claude Code (or wait for the next session) and the skills
 | `/debate` | Adversarial debate against a cross-model reviewer (Codex or Antigravity/agy) to stress-test a draft, plan, or design before finalizing. Multi-round critique with self-review and summary. Backend chosen via `--model codex\|agy` (defaults to codex). |
 | `/eli5` | Re-explain the previous assistant turn in plain language — no jargon, no unexplained acronyms, short sentences. |
 | `/issues` | Check GitHub issues for the current repo: list, filter by label, view details, search. |
+| `/mimir-search` | Search and cite source documents or slides in a configured local Mímir collection. |
 | `/review-pr-codex` | Cross-model PR review — invokes Codex headless on the current branch diff, then reads findings and fixes or reports. |
 | `/security-review` | Full security review: threat model, OWASP Top 10 + LLM Top 10 scan, finding validation, patch proposals. |
 | `/user-test-memory` | Spawn three subagents (Opus, Sonnet, Haiku) in parallel to stress-test the Munin memory MCP and produce a synthesized UX report. |
@@ -41,6 +42,7 @@ Some skills shell out to external CLIs or MCP servers:
 - **`review-pr-codex`** — requires the [OpenAI Codex CLI](https://github.com/openai/codex) installed and authenticated.
 - **`user-test-memory`** — requires the [Munin memory](https://github.com/Magnus-Gille/munin-memory) MCP server registered with Claude Code.
 - **`issues`** — requires the [GitHub CLI](https://cli.github.com/) (`gh`).
+- **`mimir-search`** — requires a separately installed and configured Mímir search CLI; its example invocation and tests use Python 3. The skill does not include credentials or host-specific configuration.
 - **`security-review`** — works standalone; suggested findings can be cross-checked with Codex CLI if available.
 - **`close` code-friction capture** — opt-in; requires the `memory_code_health` Munin tool to flush records. Without it, sanitized records remain explicitly unsaved in the private local outbox. The canonical report renderer and capture checks use Python 3.10 or newer.
 - **`code-friction`** — opt-in only; local capture requires Python 3.10 or newer. Remote persistence uses the same `memory_code_health` tool as `/close` and requires an exact authorized namespace.
