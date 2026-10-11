@@ -4,12 +4,14 @@ on:
   pull_request:
     paths:
       - "ship-it/**"
+      - "ticket-fleet/**"
       - ".github/workflows/ship-it.yml"
   push:
     branches:
       - main
     paths:
       - "ship-it/**"
+      - "ticket-fleet/**"
       - ".github/workflows/ship-it.yml"
   workflow_dispatch:
 
@@ -37,7 +39,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Run ship-it tests
-        run: python3 ship-it/scripts/test_check_ci.py
+        run: |
+          python3 ship-it/scripts/test_check_ci.py
+          python3 ship-it/scripts/test_delivery_contract.py
 
       - name: Compile Python sources
         env:

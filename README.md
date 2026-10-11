@@ -22,7 +22,7 @@ After install, restart Claude Code (or wait for the next session) and the skills
 
 | Skill | What it does |
 |-------|--------------|
-| `/ship-it` | Deliver a scoped task through independent model review, green CI/CD, merge and verified production; shared by Codex, Claude Code and Pi. |
+| `/ship-it` | Deliver a scoped task to its requested local, PR, merge or verified-production endpoint; includes a batch reference for coordinated tickets. |
 | `/close` | Session closing checklist — Git/worktree audit, handoff persistence, cleanup, optional Munin sync, and one deterministic cross-agent report format. |
 | `/code-friction` | Opt-in capture of a few concrete code-changeability observations during a coding task, with explicit privacy bounds and Close handoff. |
 | `/commit` | Standardized git commit workflow: author verification, diff review, security check, conventional message, push. |
