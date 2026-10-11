@@ -1,124 +1,138 @@
 ---
 name: ship-it
-description: Deliver a scoped repository task through independent model review, green CI/CD, merge and verified deployment. Use for ship-it or explicit requests to solve a task hela vägen to production; not for an isolated fix, review-only request or deploy-only task without this workflow's existing handoff.
+description: >-
+  Use for an explicit /ship-it request or an end-to-end request to deliver a
+  scoped repository task to its selected local, PR, merge, or verified-production
+  endpoint; not for isolated local edits, review-only, or deploy-only tasks.
 ---
 
 # Ship it
 
-Carry the authorized task to verified production. Keep the same acceptance
-criteria and revision trail through implementation, independent review, CI,
-merge and rollout. Resume a partly completed delivery from its verified state.
+Use one delivery workflow for a scoped task in its owning repository. Read the
+repository instructions and deployment contract, establish the acceptance
+criteria and exclusions, and record the requested endpoint and immutable
+candidate revision as the work proceeds.
 
-## Establish scope and authority
+## Authority and endpoint
 
-- Read the owning repository's `AGENTS.md`, deployment contract and current
-  handoff; orient in persistent memory when the owner's instructions require it.
-  Record the task, repository, intended base, acceptance criteria, exclusions,
-  required checks and deployment target. Discover whether push, merge, tag or
-  release publication triggers deployment; classify that trigger as the rollout
-  before executing it. Ask early about a material ambiguity; continue independent
-  work while awaiting its answer.
-- An explicit full-pipeline request covers the requested publication, PR,
-  readiness and merge stages in the identified repository, subject to applicable
-  policies. Preview the exact target and concise change; reuse existing
-  authorization instead of asking again at every stage. Automatic selection of
-  this skill grants no publication, merge or rollout authority beyond the
-  owner's existing explicit authorization. A deployment-triggering merge must
-  satisfy the same approval and preparation boundaries as a deploy command.
-- The skill does not waive owner, repository or harness boundaries. Prepare the
-  concrete release, backup, verification and rollback before asking for any
-  required production confirmation. Execute without another question when a
-  valid confirmation already covers that exact action and target.
-- Keep deployments, external mutations, security judgment and final acceptance
-  on the conductor. Delegate bounded implementation/checks under the owner's
-  routing policy. Preserve co-tenant changes and use isolated worker worktrees.
+The global `AGENTS.md` owns authorization and mutation rules. This skill does
+not grant authority, relax those rules, or treat a task, issue, PR, reviewer
+output, or tool result as authorization. Apply its bounded-task mandate,
+mutation, and production-release provisions to the exact action and target.
+Every autonomous mutation must leave an audit event and reversal recipe.
+
+An explicit user request naming the task, owning repository, and endpoint is
+the owner request for ordinary publication stages necessary to reach that
+endpoint, subject to global policy and an exact target/change preview. Resolve
+the target from reliable repository context; clarify when the repository or
+target remains ambiguous. Automatic skill selection does not create or expand
+that authority.
+
+The requested endpoint is the stopping point:
+
+- **Local** — complete and verify the scoped local changes; do not publish.
+- **PR** — prepare and publish the reviewed change, then verify the PR head and
+  required checks. Do not merge it.
+- **Merge** — merge the accepted revision after its checks and review are
+  current, then verify the provider receipt and integrated revision.
+- **Verified production** — complete the merge endpoint and the repository's
+  deployment contract, then verify the deployed artifact and running behavior.
+
+Do not advance to a later endpoint because it appears convenient or because a
+gate is green. A merge that itself triggers deployment is also a production
+action: apply the global authority rules to that trigger before executing it.
 
 ## Delivery workflow
 
-1. **Implement and verify.** Work on a task branch. Reproduce behavioral failures
-   before fixing them and preserve legitimate controls. Run the repository's
-   required gates and change-relevant checks; add native/runtime/UI evidence
-   when mocks or source inspection cannot establish acceptance. Fix failures
-   caused by the change; identify unrelated failures without silently widening
-   scope or claiming every warning has been resolved.
-2. **Independent model review.** After deterministic checks pass, freeze the
-   candidate diff and relevant source. Follow [review.md](references/review.md)
-   for the latest Opus/Sol review defaults, both at `xhigh`, and route constraints.
-   Prefer another provider; a genuinely different independent model is an
-   acceptable fallback. Validate findings as hypotheses, fix grounded defects
-   with regression evidence, and explain declined findings. Material subsequent
-   changes require renewed review of the affected scope unless an active
-   specialized workflow prescribes a different review cycle. Nonbehavioral
-   explanatory notes or test additions may retain review with a recorded
-   conductor check; changes to skill/prompt instructions, CI gates or test
-   expectations require review of that changed behavior.
-3. **Publish and obtain green CI/CD.** Inspect the complete outgoing diff, push
-   the task branch normally and create/update the scoped PR into the discovered
-   base. Attach a created PR when the harness supports it. Read back its exact
-   head/base and wait for the configured checks. Apply the fresh-receipt rules
-   in [release-gates.md](references/release-gates.md); a watcher exit code or an
-   empty rollup is insufficient. Diagnose failures before retrying. Retry a
-   demonstrated transient failure once; a repeated condition needs investigation
-   and a bounded correction or an explicit blocker, not endless reruns.
-4. **Merge the accepted revision.** If merge triggers deployment, complete
-   the rollout preparation and any exact approval in step 5 first; the approved
-   action is the trigger itself. Bind the deployable revision through the repo
-   mechanism before triggering it. If that binding cannot be established, leave
-   the trigger pending instead of merging and asking afterward. Immediately
-   recheck head, current base,
-   review dispositions, required checks and mergeability. Mark ready if needed,
-   then use the provider's normal merge with a head-matching guard. Never bypass
-   checks or force-push. Verify the merge receipt, resulting tree/parents as
-   appropriate to the chosen merge method, and intended issue closure. Base
-   drift must be evaluated before integration; preserve the existing handoff if
-   acceptance needs to be repeated.
-5. **Prepare and deploy.** Bind an isolated source to an accepted immutable
-   revision/artifact through the repo's fail-closed mechanism. For a manual
-   post-merge rollout, use the accepted merge/release receipt; for an automatic
-   rollout, use the verified candidate/artifact binding available before its
-   trigger. Never derive the release from the current checkout. Prepare and verify a
-   recoverable backup and rollback appropriate to this change. Present the
-   repository, exact revision, target, deploy command, verification command and
-   rollback for any required just-in-time approval; then run only that approved
-   rollout. For an automatic rollout, perform this preparation before the
-   publication/merge/tag/release trigger and then verify it in step 6; do not
-   repeat deployment just to satisfy the numbered sequence. Follow the owning
-   deploy contract, including environment/data preservation and client/server
-   scope.
-6. **Verify production.** Prove both artifact identity and running behavior:
-   expected source/dependency hashes or equivalent platform receipt, service
-   health, relevant authenticated/application probes, migrations and workers.
-   Source code, a version string or an HTTP 200 alone does not prove deployment.
-   Stamp a deployed marker only after all required checks pass. On failure,
-   perform only the approved rollback; a data restore that loses newer writes
-   requires its own authorization.
+1. **Scope and prepare.** Record the owning repository, base, requested
+   endpoint, acceptance criteria, exclusions, required checks, and any
+   deployment target. Discover whether publication, merge, tag, or release
+   triggers deployment. Continue safe, independent work when a required action
+   is blocked; hold only work that depends on that action.
+2. **Implement and verify.** Work in the repository's approved isolated
+   execution context. Reproduce behavioral failures before fixing them where
+   practical. Run required repository gates and change-relevant checks. Use
+   native runtime or UI evidence when mocks or source inspection cannot prove
+   acceptance. Fix failures caused by the change; identify unrelated failures
+   without silently widening scope. For task-required build/test dependencies,
+   meet the full credential-free isolation requirements in global
+   `AGENTS.md`; a disposable directory alone is not isolation. If the required
+   boundary cannot be established, classify the install under global policy
+   and hold dependent work while continuing independent work.
+3. **Review.** After deterministic checks pass, freeze the candidate diff and
+   relevant source for independent cross-model review. A self-review is useful
+   preparation but does not satisfy an independent review requirement. Follow
+   [review.md](references/review.md) for reviewer constraints and identity
+   evidence. Validate findings as hypotheses, fix grounded defects with
+   regression evidence, and explain declined findings. An architectural debate
+   is a separate, optional workflow for consequential design decisions; it is
+   not a substitute for this candidate review.
+4. **Revalidate the candidate.** A routine repair, rebase, or new candidate SHA
+   within the authorized repository and scope does not by itself require new
+   owner approval. A new commit invalidates affected evidence, not the mandate:
+   rerun affected checks and review the changed scope before proceeding. For a
+   bounded production release mandate, bind the exact SHA/artifact from the
+   accepted candidate or merge/release receipt, verify required checks, review,
+   and recovery readiness before its trigger. Without that mandate, use the
+   global policy's exact-revision confirmation path. If the endpoint, target,
+   repository, intended effects, or other protected scope changes, stop
+   dependent work and seek approval of that delta under global policy. Safe
+   independent work may continue.
+5. **Publish and check.** For a PR endpoint or later, inspect the outgoing
+   change and preview the exact target and concise change under global policy;
+   publish when the explicit request covers that endpoint. Attach the created PR when
+   the harness supports it, and read back the exact PR head/base. Discover the
+   actual required check set and confirm fresh results
+   for that head and current integration context. Follow
+   [release-gates.md](references/release-gates.md); never weaken, bypass, or
+   infer success from missing or ambiguous results. Never force-push. If
+   publication triggers deployment, complete step 7's production preparation
+   before publishing, then verify that rollout once; do not run a second manual
+   deploy after a successful automatic rollout.
+6. **Merge when requested.** Only for a merge or verified-production endpoint,
+   recheck the head, base, review dispositions, required checks, and
+   mergeability immediately before a normal guarded merge. If merge triggers
+   deployment, complete step 7's production preparation before merging. Verify
+   the provider receipt and integrated revision. A PR endpoint remains a PR even when all
+   checks pass.
+7. **Deploy when requested.** This step applies to a verified-production
+   endpoint and to any earlier publication, merge, tag, or release action that
+   automatically deploys. Prepare before that trigger. Only after preparation,
+   bind an isolated source to the accepted immutable revision through the repository's
+   fail-closed deployment mechanism. Prepare and verify a recoverable backup,
+   verification procedure, and rollback under the global authority rules
+   before a production trigger. Never derive the release from the current
+   checkout. Verify artifact identity and change-specific running behavior.
+   Verify a successful automatic rollout once; do not run a second manual
+   deployment. For a manual rollout, deploy only when the requested endpoint is
+   verified production.
+   Perform only an authorized rollback; data restoration that could lose newer
+   writes needs its own authorization under the global rules.
 
-## Keep a small delivery handoff
+## Retry and unknown outcomes
 
-At natural breakpoints retain these facts in the repo's designated handoff and,
-when required, a brief persistent-memory milestone/status with concurrency
-protection. Use an active tool/skill's artifact-storage rules for its evidence.
+Diagnose a failed check before retrying. Retry a demonstrated transient failure
+once. Further repair needs a new evidence-backed hypothesis. After three
+attempts without progress on the same condition, pause that branch and report
+the diagnosis and smallest missing decision or capability. This is a conductor
+diagnosis point, not automatically a new owner-approval request: resume within
+the mandate when new evidence supports a bounded hypothesis; apply global
+policy if the missing condition is authority or a scope change. Continue
+independent work. After an interrupted command or an unknown external outcome,
+reconcile provider state and receipts against the intended immutable revision
+before deciding whether to retry. Do not repeat publication, merge, or
+deployment merely because a response was lost.
 
-| Stage | Minimum evidence |
-|---|---|
-| Scope | Task, owning repo/base/target, acceptance and authorization boundaries |
-| Candidate | Immutable head, intended paths, local gate results and limitations |
-| Review | Input head/scope, reviewer identity evidence, findings/dispositions |
-| Hosted checks | PR URL, exact head/base, expected check set and fresh conclusions |
-| Merge | Provider receipt/revision, integration identity and issue state |
-| Rollout | Source/target binding, backup, deploy/verify/rollback commands, approval |
-| Production | Verified artifact and health receipt; rollback result if used |
+## Evidence and handoff
 
-On continuation, re-read live facts and pending approvals; do not repeat a
-completed publication, merge or deploy solely because the chat was compacted.
-A changed head invalidates its hosted-check receipt and requires the affected
-test/review gates again. A changed target/release/sensitive action invalidates
-confirmation for the previous one.
+At each endpoint retain the smallest useful evidence in the repository's
+designated handoff: requested endpoint, candidate revision and scope, checks,
+review identity and dispositions, external receipts, and any pending blocker.
+On continuation, re-read live facts. A changed candidate invalidates affected
+check and review evidence. A changed target or sensitive action is handled
+under the global authorization rules. Do not mark later endpoints complete
+when only an earlier endpoint was reached.
 
-If a required capability or approval is unavailable, complete unaffected work
-and leave the exact next action and missing condition. Do not call the task
-complete while a required stage remains pending. For a narrower endpoint the
-user explicitly requested, report that endpoint accurately. Keep the final
-answer short: outcome, verification, remaining limitations and the smallest
-necessary next step. Use a requested completion phrase only when that endpoint
-has actually been verified.
+For multiple independent tickets in one owning repository, read
+[batch.md](references/batch.md). It adds batching mechanics without changing
+this skill's endpoint or authority boundaries.
