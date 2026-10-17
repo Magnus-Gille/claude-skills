@@ -48,7 +48,7 @@ class SkillExampleTests(unittest.TestCase):
 
     def test_skill_states_semantic_limits(self):
         text=' '.join(SKILL.read_text().split())
-        for phrase in ('exact terms','paraphrased','weak hits','three-search bound','`hybrid`','do not abstain','not confidence','`lexical_fallback`','retry once without `mode`'):
+        for phrase in ('exact terms','paraphrased','weak hits','three-search bound','`hybrid`','`abstention.policy`','configured a threshold','not confidence','`lexical_fallback`','retry once without `mode`'):
             self.assertIn(phrase,text)
 
     def test_no_hits_remains_no_hits(self):
