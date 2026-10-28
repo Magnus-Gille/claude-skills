@@ -1,9 +1,13 @@
 ---
 name: ticket-fleet
-description: Compatibility route for legacy ticket-fleet requests. Use ship-it's PR endpoint for each scoped ticket and its batch reference for coordination; this entrypoint does not dispatch workers or authorize merge/deploy.
+description: Compatibility route for legacy ticket-fleet requests. Use ship-it's PR endpoint for each scoped ticket (a Plane ticket key such as GRIM-87) and its batch reference for coordination; this entrypoint does not dispatch workers or authorize merge/deploy.
 ---
 
 # Ticket-fleet compatibility
+
+A "ticket" here is a Plane ticket, identified by its key (for example `GRIM-87`),
+not a GitHub issue. A PR for it stays on GitHub and references the key plus the
+Plane URL (`Refs GRIM-87`).
 
 For an existing `/ticket-fleet` request, use the single delivery workflow in
 [`../ship-it/SKILL.md`](../ship-it/SKILL.md) at the **PR endpoint**. It ends
