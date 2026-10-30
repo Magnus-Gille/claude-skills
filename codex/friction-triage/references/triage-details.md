@@ -16,15 +16,15 @@ Skip an event when any of these apply:
 
 - It has `status:completed`, `fixed-by:*`, or a `**Resolution:**` note.
 - Its key starts with `smoke-test` or `tailscale-smoke`.
-- It already has an `issue:*` tag.
+- It already has an `issue:*` tag (legacy `issue:<repo>#<num>` or a ticket key such as `issue:HUGIN-412`).
 
-Cluster surviving events by tool/subsystem and root failure, using `tool_name` and `user_tags`. Repeated events become one issue; keep distinct failure modes as sub-points and retain the source keys for evidence.
+Cluster surviving events by tool/subsystem and root failure, using `tool_name` and `user_tags`. Repeated events become one ticket; keep distinct failure modes as sub-points and retain the source keys for evidence.
 
 Flag a cluster instead of filing when it is a harness/provider bug, an external MCP failure, or behavior already covered by an existing repository rule. Explain the reason in the report.
 
-## Route and prepare issues
+## Route and prepare tickets
 
-Route by where the fix lives:
+Route by where the fix lives. Each repo is a Plane project (one per former GitHub repo; ticket key `IDENT-N`):
 
 | Signal | Owning repo |
 |---|---|
@@ -34,40 +34,43 @@ Route by where the fix lives:
 | m5, gateway, llama-swap, serving, inference evaluation | `gille-inference` |
 | drone-lab-specific behavior | `drone-lab` |
 
-All repos are under `Magnus-Gille`. If no route matches, ask the user rather than guessing. Verify a chosen slug with:
+If no route matches, ask the user rather than guessing. Verify a chosen repo has a project with `project_list` (MCP) or:
 
 ```bash
-gh repo view Magnus-Gille/<repo> --json name -q .name
+tix projects
 ```
 
-Write each body to a scratch file and use `--body-file`; never inline friction details containing backticks, markup, or shell metacharacters. Include **Problem**, **Evidence**, **Proposed Fix**, and **Source** friction keys so the issue stands without Munin access.
+Write each body to a scratch file and pass it with `-f`; never inline friction details containing backticks, markup, or shell metacharacters. Include **Problem**, **Evidence**, **Proposed Fix**, and **Source** friction keys so the ticket stands without Munin access.
 
-When filing is authorized, create and board each issue in a bounded loop:
+When filing is authorized, create each ticket with the Grimnir Roadmap board label and component label in one bounded call:
 
 ```bash
-url=$(gh issue create --repo "Magnus-Gille/<repo>" --title "<title>" --body-file "<file>")
-gh project item-add 1 --owner Magnus-Gille --url "$url"
+tix new -p "<repo>" -t "<title>" -f "<file>" -l board:grimnir-roadmap -l "component:<Component>" --priority "<priority>" --from "<sender>"
 ```
 
-Project 1 is the Grimnir Roadmap. Omit `--label` unless that label has been verified in the target repository. `item-add` requires the `project` write scope; `read:project` is insufficient. Do not attempt authentication or scope changes as part of triage without separate owner authorization.
+The MCP equivalent is `ticket_create` with `project`, `title`, `description`, `labels`, `priority` and `from`. Either way the call returns the ticket key and URL; record both.
 
-## Verify board state
+- Board membership is the label `board:grimnir-roadmap`; the former Component field is the label `component:<Component>` (for example `component:Hugin`).
+- Map severity to Plane priority: Critical to `urgent`, High to `high`, Medium to `medium`, Low to `low`.
+- `--from <sender>` (MCP `from`) adds the label `from:<sender>` and the `Filed by: <sender>` footer; do not add either by hand. `board:*`, `component:*` and `from:*` labels are created on first use. Omit any other label unless it exists in the target project (`project_meta`; an unknown label makes the call fail and lists the valid ones).
+- Do not attempt authentication or token changes as part of triage without separate owner authorization. Pull requests stay on GitHub; do not file GitHub issues.
 
-`item-add` may print no useful success output. Verify with a limit well above the board size:
+## Verify ticket and board state
+
+The create call returns the key and URL; read each new ticket back by key to confirm it landed as intended:
 
 ```bash
-LIMIT=2000
-gh project item-list 1 --owner Magnus-Gille --format json -L "$LIMIT"
+tix show "<KEY>" --json
 ```
 
-Count returned items and inspect the newly-created repository/issue numbers. If the count equals `LIMIT`, assume truncation, raise the limit, and repeat before concluding an item is absent. New items can sort last, so a low limit can hide exactly the items just added.
+Confirm the project, title, `priority`, and that the labels include `board:grimnir-roadmap`, `component:<Component>` and `from:<sender>`. For the board as a whole, `tix ls -l board:grimnir-roadmap -s open --json` lists every open roadmap ticket across projects. `tix ls` pages up to 500 tickets, so a result of exactly 500 may be truncated.
 
 ## Log state
 
 After an authorized sweep:
 
-1. `memory_log` to `meta/friction-triage` with filed issues, deliberately unfiled items, and cross-cutting findings; use tags `milestone`, `decision`, and `friction`.
-2. Update `meta/friction-triage/status` with the sweep date and compact open-issue index so the next window is correct.
-3. Optionally add `issue:<repo>#<num>` to each source event with `patch.tags_add`; the sweep date already prevents double filing.
+1. `memory_log` to `meta/friction-triage` with filed tickets, deliberately unfiled items, and cross-cutting findings; use tags `milestone`, `decision`, and `friction`.
+2. Update `meta/friction-triage/status` with the sweep date and compact open-ticket index so the next window is correct.
+3. Optionally add `issue:<KEY>` (the Plane ticket key, e.g. `issue:HUGIN-412`) to each source event with `patch.tags_add`; the sweep date already prevents double filing.
 
-Report repository/issue, title, severity, event count, and filing decision. End with the highest-leverage issue.
+Report ticket key (or repository when not filed), title, severity, event count, and filing decision. End with the highest-leverage ticket.

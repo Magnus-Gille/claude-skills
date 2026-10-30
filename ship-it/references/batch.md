@@ -4,6 +4,13 @@ Use this reference when the requested scoped outcome contains several
 well-defined tickets. The `/ship-it` endpoint and authority rules still apply
 to each ticket; this reference adds coordination mechanics only.
 
+A ticket is a Plane ticket (https://tickets.gille.ai), identified by its key
+`IDENT-N` such as `GRIM-87`. Read and update tickets through the `tickets` MCP
+tools or the `tix` CLI, and use the key (not a GitHub issue number) in the
+scoreboard, handoffs and PRs. A PR stays on GitHub and references its ticket as
+`Refs <KEY>` plus the Plane URL; there is no automatic PR linking, so a ticket
+is closed only by an explicit, authorized update.
+
 ## Plan the batch
 
 - Group tickets by owning repository and identify cross-ticket dependencies
@@ -27,7 +34,7 @@ to each ticket; this reference adds coordination mechanics only.
 
 ## Track, resume, and integrate
 
-Maintain a compact batch scoreboard with ticket, repository, worktree/branch,
+Maintain a compact batch scoreboard with ticket key, repository, worktree/branch,
 requested endpoint, PR, required-check status, independent-review disposition,
 uncertainties, and next dependency. Surface uncertainty to the owner with the
 affected ticket and decision needed.
