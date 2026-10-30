@@ -5,6 +5,14 @@ scan or architecture debate. Apply a specialized workflow only when requested,
 required by the repository or warranted by the actual change; honor its cycle
 and artifact constraints.
 
+## Review ownership and handoff
+
+Apply the agentic review ownership rule in [SKILL.md](../SKILL.md). An unavailable
+independent reviewer is a capability blocker handled by the existing fallback
+policy; never transfer the review to Magnus. In the handoff, state review status
+(done or pending), candidate and scope, reviewer and route, and findings and
+disposition. Report any pending owner approval or decision separately.
+
 ## Choose and constrain the reviewer
 
 Prefer a different provider through an already configured route. When that

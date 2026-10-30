@@ -42,6 +42,21 @@ Do not advance to a later endpoint because it appears convenient or because a
 gate is green. A merge that itself triggers deployment is also a production
 action: apply the global authority rules to that trigger before executing it.
 
+## Review ownership
+
+Every review and review gate in this workflow is an agentic technical review.
+The conductor arranges the required review, or performs an in-scope review
+itself where existing policy permits; it must not implicitly assign technical
+review to Magnus or stop at “ready for review” while agent review remains.
+Where existing policy permits self-review as a fallback, label it as such: it
+is never independent review, and independent cross-model requirements remain
+unchanged.
+
+Agent review is evidence, not authorization. Magnus's explicit approval or
+decision remains distinct from review; agent review neither grants nor replaces
+that owner decision. Handoffs and final messages must not describe Magnus as
+the technical reviewer or imply that he must perform the review.
+
 ## Delivery workflow
 
 1. **Scope and prepare.** Record the owning repository, base, requested
