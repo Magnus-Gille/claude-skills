@@ -52,7 +52,7 @@ is non-empty, and use captured stdout only when it contains the complete returne
 report. If there is no complete result, report the invocation failure rather than a
 clean review. Do not use workspace-write, danger-full-access, automatic approvals,
 or commands that allow the reviewer to alter the repository. A read-only shell
-sandbox does not by itself disable MCP, hooks, network access, or other configured
+sandbox does not by itself disable MCP, hooks, network access, sub-agent tools, or other configured
 capabilities: inspect the effective configuration and available flags, and narrow
 them where supported. Prefer a frozen, supplied diff/commit context with no tools
 when the CLI supports that mode. If the installed CLI cannot provide a suitably
